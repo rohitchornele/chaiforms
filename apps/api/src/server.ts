@@ -1,6 +1,7 @@
 import express from "express";
 import { logger } from "@repo/logger";
 import cors from "cors";
+import cookieParser  from 'cookie-parser'
 
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to-openapi";
@@ -12,7 +13,6 @@ import { env } from "./env";
 
 export const app = express();
 
-
 const openApiDocument = generateOpenApiDocument(serverRouter, {
   title: "Streamyst OpenAPI",
   version: "1.0.0",
@@ -20,13 +20,16 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 });
 
 // if (env.NODE_ENV !== "prod") {
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-  
-    }),
-  );
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
+);
 // }
+
+
+app.use(cookieParser())
 
 app.use(express.json());
 
