@@ -15,6 +15,13 @@
       "when": 1779211316458,
       "tag": "0001_opposite_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779375517891,
+      "tag": "0002_aromatic_invisible_woman",
+      "breakpoints": true
     }
   ]
 }
