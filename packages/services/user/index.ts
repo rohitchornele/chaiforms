@@ -2,8 +2,9 @@ import { createHmac, randomBytes } from 'node:crypto';
 import * as JWT from 'jsonwebtoken'
 import { db, eq } from '@repo/database';
 import { usersTable } from '@repo/database/models/user';
-import { createUserWithEmailAndPasswordInput, generateUserTokenPayload, GenerateUserTokenPayloadType, type CreateUserWithEmailAndPasswordInputType } from "./model";
+import { createUserWithEmailAndPasswordInput, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, signInUserWithEmailAndPasswordInputType, type CreateUserWithEmailAndPasswordInputType } from "./model";
 import { env } from '../env';
+import { error } from 'node:console';
 
 class UserService {
 
@@ -13,6 +14,8 @@ class UserService {
     if (!result || result.length === 0) {
       return null
     }
+
+    return result[0]
   }
 
   private async generateUserToken(payload: GenerateUserTokenPayloadType) {
@@ -21,6 +24,37 @@ class UserService {
     return { token };
   }
 
+  private async verifyUserToken(token: string) {
+
+    console.log("token to verify : ", token)
+
+    try {
+      const verificationResult = JWT.verify(token, env.JWT_SECRET) as GenerateUserTokenPayloadType
+      console.log("verificationResult = ", verificationResult)
+      return verificationResult;
+    } catch (error) {
+      throw new Error('Invalid Token')
+    }
+  }
+
+  private async getUserInfoById(id: string) {
+    const user = await db.select({
+      id: usersTable.id,
+      email: usersTable.email,
+      fullName: usersTable.fullName,
+      profileImageUrl: usersTable.profileImageUrl,
+    }).from(usersTable).where(eq(usersTable.id, id))
+
+    if (!user || user.length === 0) throw new Error("User with id does not exists")
+
+    return user[0]!
+
+
+  }
+
+  private async generateHash(salt: string, password: string) {
+    return createHmac('sha256', salt).update(password).digest('hex')
+  }
 
   public async createUserWithEmailAndPassword(payload: CreateUserWithEmailAndPasswordInputType) {
 
@@ -32,7 +66,7 @@ class UserService {
 
     // calculate salt & hash the password
     const salt = randomBytes(16).toString('hex');
-    const hash = createHmac('sha256', salt).update(password).digest('hex')
+    const hash = await this.generateHash(salt, password)
 
     // create user in db
     const userInsertResult = await db.insert(usersTable).values({ email, fullName, password: hash, salt }).returning({
@@ -55,6 +89,51 @@ class UserService {
     }
 
   }
+
+  public async signInUserWithEmailAndPassword(payload: signInUserWithEmailAndPasswordInputType) {
+    const { email, password } = await signInUserWithEmailAndPasswordInput.parseAsync(payload);
+
+    const existingUser = await this.getUserByEmail(email);
+
+    if (!existingUser) {
+      throw new Error('User with email does not exists')
+    }
+
+    if (!existingUser.password || !existingUser.salt) {
+      throw new Error("Invalid Authentication Method")
+    }
+
+    const hash = await this.generateHash(existingUser.salt, password)
+
+    if (hash != existingUser.password) {
+      throw new Error(`Invalid email address or password`)
+    }
+
+    const { token } = await this.generateUserToken({ id: existingUser.id })
+
+    return {
+      id: existingUser.id,
+      token
+    }
+
+  }
+
+  public async verifyAndDecodeUserToken(token: string) {
+
+    console.log("token to decode = ", token)
+
+    const { id } = await this.verifyUserToken(token)
+
+    console.log("id after decode : ", id)
+
+    const userInfo = await this.getUserInfoById(id)
+
+    console.log("Userinfo = ", userInfo)
+
+    return { ...userInfo }
+  }
+
+
 }
 
 export default UserService;

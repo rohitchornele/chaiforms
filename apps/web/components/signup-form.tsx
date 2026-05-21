@@ -5,8 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/com
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "~/components/ui/field";
 import { Input } from "~/components/ui/input";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { trpc } from "~/trpc/client";
+import { useRouter }  from "next/navigation"
+
 import { useSignup } from "~/hooks/api/auth";
+import Link from "next/link";
 
 type SignupFormValues = {
   name: string;
@@ -18,6 +20,8 @@ type SignupFormValues = {
 export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
 
   const { createUserWithEmailAndPasswordAsync} = useSignup();
+
+  const router = useRouter();
 
   const {
     register,
@@ -39,7 +43,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
       fullName : values.name,
       password : values.password
     })
-    console.log("User created with id : ", id)
+    router.replace("/dashboard")
   };
 
   return (
@@ -93,7 +97,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               <Field>
                 <Button type="submit">{isSubmitting ? "Creating..." : "Create Account"}</Button>
                 <FieldDescription className="text-center">
-                  Already have an account? <a href="#">Sign in</a>
+                  Already have an account? <Link href="/login">Sign in</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>
