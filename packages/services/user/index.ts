@@ -26,11 +26,8 @@ class UserService {
 
   private async verifyUserToken(token: string) {
 
-    console.log("token to verify : ", token)
-
     try {
       const verificationResult = JWT.verify(token, env.JWT_SECRET) as GenerateUserTokenPayloadType
-      console.log("verificationResult = ", verificationResult)
       return verificationResult;
     } catch (error) {
       throw new Error('Invalid Token')
@@ -120,15 +117,9 @@ class UserService {
 
   public async verifyAndDecodeUserToken(token: string) {
 
-    console.log("token to decode = ", token)
-
     const { id } = await this.verifyUserToken(token)
 
-    console.log("id after decode : ", id)
-
     const userInfo = await this.getUserInfoById(id)
-
-    console.log("Userinfo = ", userInfo)
 
     return { ...userInfo }
   }

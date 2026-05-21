@@ -66,9 +66,7 @@ export const authRouter = router({
         .input(getLoggedInUserInfoInputModel)
         .output(getLoggedInUserInfoOutputModel)
         .query(async ({ ctx }) => {
-            console.log("ctx = ", ctx)
             const userToken = await getAuthenticationCookie(ctx)
-            console.log("usertoken = ", userToken)
             if (!userToken) {
                 throw new Error('User is not logged in')
             }

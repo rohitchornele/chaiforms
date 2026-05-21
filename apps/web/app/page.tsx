@@ -18,7 +18,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen min-w-screen flex justify-center items-center">
-      
       <div className="">{JSON.stringify(user, null, 2)}</div>
     </main>
   );

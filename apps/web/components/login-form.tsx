@@ -32,7 +32,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   });
 
   const onSubmit: SubmitHandler<SignInFormValues> = async (values) => {
-    // console.log(values);
     const { id } = await signInUserWithEmailAndPasswordAsync({
       email: values.email,
       password: values.password,

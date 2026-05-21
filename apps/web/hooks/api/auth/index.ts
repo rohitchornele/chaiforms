@@ -77,6 +77,8 @@ export const useUser = () => {
       status,
    } = trpc.auth.getLoggedInUserInfo.useQuery()
 
+   console.log("useUser data : ", user)
+
    return {
       user,
       error,
