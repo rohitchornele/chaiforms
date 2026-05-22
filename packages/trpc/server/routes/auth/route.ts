@@ -1,6 +1,6 @@
 
 import { userService } from "../../services";
-import { publicProcedure, router } from "../../trpc";
+import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { getAuthenticationCookie, setAuthenticationCookie } from "../../utils/cookie";
 import { generatePath } from "../../utils/path-generator";
 import { createUserWithEmailAndPasswordInputModel, createUserWithEmailAndPasswordOutputModel, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, signInUserWithEmailAndPasswordInputModel, signInUserWithEmailAndPasswordOutputModel } from "./model";
@@ -55,23 +55,24 @@ export const authRouter = router({
             };
         }),
 
-    getLoggedInUserInfo: publicProcedure
+    getLoggedInUserInfo: authenticatedProcedure
         .meta({
             openapi: {
                 method: "GET",
                 path: getPath('/getLoggedInUserInfo'),
-                tags: TAGS
+                tags: TAGS,
+                protect : true
             }
         })
         .input(getLoggedInUserInfoInputModel)
         .output(getLoggedInUserInfoOutputModel)
         .query(async ({ ctx }) => {
-            const userToken = await getAuthenticationCookie(ctx)
-            if (!userToken) {
-                throw new Error('User is not logged in')
-            }
+            // const userToken = await getAuthenticationCookie(ctx)
+            // if (!userToken) {
+            //     throw new Error('User is not logged in')
+            // }
 
-            const { id, email, fullName, profileImageUrl } = await userService.verifyAndDecodeUserToken(userToken)
+            const { id, email, fullName, profileImageUrl } = await userService.getUserInfoById(ctx.user.id)
 
             return {
                 id,

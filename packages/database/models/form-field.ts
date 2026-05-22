@@ -22,17 +22,12 @@ export const formFieldsTable = pgTable("form_fields", {
   labelKey : varchar("label_key", {length: 100}).notNull(),
   
   description: text('description'),
+  
   placeholder: varchar('placeholder'),
   
   isRequired : boolean('is_required').default(false).notNull(),
 
   orderIndex :  numeric('order_index', { scale: 2}).notNull(),
-
-  isPasswordProtected : boolean('is_password_protected').default(false),
-  password : varchar('password'),
-
-  publishDate : timestamp('start_date').defaultNow(),
-  expiryDate : timestamp('expiry_date'),
 
   type : fieldTypeEnum('type').notNull(),
 

@@ -20,6 +20,8 @@ export const formsTable = pgTable("forms", {
   publishDate : timestamp('start_date').defaultNow(),
   expiryDate : timestamp('expiry_date'),
 
+  // responseLimit : number('response-limit').default(0),
+
   createdBy : uuid('created_by').references(() => usersTable.id),
 
   createdAt: timestamp("created_at").defaultNow(),
