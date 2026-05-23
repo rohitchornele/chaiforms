@@ -1,29 +1,44 @@
+
 import {
   pgTable,
   uuid,
   varchar,
   timestamp,
-  boolean
+  boolean,
+  integer,
+  pgEnum,
+  text,
 } from "drizzle-orm/pg-core";
+
 import { usersTable } from "./user";
 
+export const formVisibilityEnum = pgEnum("form_visibility_enum", ["PUBLIC", "UNLISTED", "PRIVATE"]);
 
 export const formsTable = pgTable("forms", {
+
   id: uuid("id").primaryKey().defaultRandom(),
 
-  title: varchar("full_name", { length: 64 }).notNull(),
-  description: varchar('description', {length : 300}),
+  title: varchar("title", { length: 64 }).notNull(),
 
-  isPasswordProtected : boolean('is_password_protected').default(false),
-  password : varchar('password'),
+  description: varchar("description", { length: 300 }),
 
-  publishDate : timestamp('start_date').defaultNow(),
-  expiryDate : timestamp('expiry_date'),
+  visibility: formVisibilityEnum("visibility").default("UNLISTED").notNull(),
 
-  // responseLimit : number('response-limit').default(0),
+  allowEmbed: boolean("allow_embed").default(true).notNull(),
 
-  createdBy : uuid('created_by').references(() => usersTable.id),
+  isPasswordProtected: boolean("is_password_protected").default(false).notNull(),
 
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+  passwordHash: text("password_hash"),
+
+  publishedAt: timestamp("published_at").defaultNow(),
+
+  expiryDate: timestamp("expiry_date"),
+
+  responseLimit: integer("response_limit"),
+
+  createdBy: uuid("created_by").references(() => usersTable.id),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
 });

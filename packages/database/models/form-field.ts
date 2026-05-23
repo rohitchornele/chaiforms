@@ -8,8 +8,8 @@ import {
   pgEnum
 } from "drizzle-orm/pg-core";
 import { numeric } from "drizzle-orm/pg-core";
-import { formsTable } from "./form";
 import { unique } from "drizzle-orm/pg-core";
+import { formsTable } from "./form";
 
 
 export const fieldTypeEnum = pgEnum('field_type_enum', ['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWROD'])
@@ -34,7 +34,7 @@ export const formFieldsTable = pgTable("form_fields", {
   formId : uuid('form_id').references(() => formsTable.id),
 
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").$onUpdate(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()),
 
 }, (table) => {
     return {

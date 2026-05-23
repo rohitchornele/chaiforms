@@ -1,3 +1,4 @@
+import { pgEnum } from "drizzle-orm/pg-core";
 import {
   pgTable,
   uuid,
@@ -6,6 +7,8 @@ import {
   boolean,
   text,
 } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role_enum", ["USER", "ADMIN"]);
 
 export const usersTable = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -17,6 +20,8 @@ export const usersTable = pgTable("users", {
 
   profileImageUrl: text("profile_image_url"),
 
+  role: userRoleEnum ("role").default("USER").notNull(),
+
   salt : text('salt'),
   password : text('password'),
 
@@ -26,3 +31,5 @@ export const usersTable = pgTable("users", {
 
 export type SelectUser = typeof usersTable.$inferSelect;
 export type InsertUser = typeof usersTable.$inferInsert;
+
+

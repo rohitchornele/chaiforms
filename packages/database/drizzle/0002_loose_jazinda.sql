@@ -7,14 +7,10 @@ CREATE TABLE "form_fields" (
 	"placeholder" varchar,
 	"is_required" boolean DEFAULT false NOT NULL,
 	"order_index" numeric NOT NULL,
-	"is_password_protected" boolean DEFAULT false,
-	"password" varchar,
-	"start_date" timestamp DEFAULT now(),
-	"expiry_date" timestamp,
 	"type" "field_type_enum" NOT NULL,
 	"form_id" uuid,
 	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp,
+	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "form_fields_form_id_order_index_unique" UNIQUE("form_id","order_index")
 );
 --> statement-breakpoint
