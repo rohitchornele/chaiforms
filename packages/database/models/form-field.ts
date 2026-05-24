@@ -12,7 +12,7 @@ import { unique } from "drizzle-orm/pg-core";
 import { formsTable } from "./form";
 
 
-export const fieldTypeEnum = pgEnum('field_type_enum', ['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWROD'])
+export const fieldTypeEnum = pgEnum('field_type_enum', ['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD'])
 
 
 export const formFieldsTable = pgTable("form_fields", {
