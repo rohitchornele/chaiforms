@@ -23,8 +23,8 @@ export const formRouter = router({
         .input(createFormInputModel)
         .output(createFormOutputModel)
         .mutation(async ({ input, ctx }) => {
-            const { title, description } = input;
-            const { id } = await formService.createForm({ title, description, createdBy: ctx.user.id });
+            const { title, description, visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit  } = input;
+            const { id } = await formService.createForm({ title, description, createdBy: ctx.user.id,  visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit});
             return { id };
         }),
 

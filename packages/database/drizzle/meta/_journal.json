@@ -22,6 +22,20 @@
       "when": 1779521299241,
       "tag": "0002_loose_jazinda",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779613942575,
+      "tag": "0003_jazzy_the_initiative",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779614008091,
+      "tag": "0004_wise_risque",
+      "breakpoints": true
     }
   ]
 }

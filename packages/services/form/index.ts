@@ -6,9 +6,9 @@ import { createFormInput, getFormByIdInput, GetFormByIdInputType, listFormsByUse
 class FormService {
 
     public async createForm(payload: CreateFormInputType) {
-        const { title, description, createdBy } = await createFormInput.parseAsync(payload)
+        const { title, description, createdBy,visibility, isPasswordProtected, passwordHash, expiryDate, responseLimit  } = await createFormInput.parseAsync(payload)
 
-        const result = await db.insert(formsTable).values({ title, description, createdBy }).returning({
+        const result = await db.insert(formsTable).values({ title, description, createdBy, visibility, isPasswordProtected, passwordHash, expiryDate, responseLimit }).returning({
             id: formsTable.id,
         })
 

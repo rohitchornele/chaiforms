@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Search, FileText, Share2, Pencil, AlertCircle } from "lucide-react";
+import {
+  Plus,
+  X,
+  Search,
+  FileText,
+  Share2,
+  Pencil,
+  AlertCircle,
+} from "lucide-react";
+
 import { useCreateForm, useListForm } from "~/hooks/api/form";
 import Link from "next/link";
 
@@ -18,19 +27,22 @@ type Form = {
 // ── Skeleton ───────────────────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 space-y-3 animate-pulse">
+    <div className="animate-pulse space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="h-5 w-20 rounded-full bg-gray-200" />
         <div className="h-4 w-24 rounded bg-gray-200" />
       </div>
+
       <div className="h-5 w-3/5 rounded bg-gray-200" />
       <div className="h-4 w-4/5 rounded bg-gray-100" />
       <div className="h-4 w-2/5 rounded bg-gray-100" />
-      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+
+      <div className="flex items-center justify-between border-t border-gray-100 pt-4">
         <div className="h-4 w-24 rounded bg-gray-200" />
+
         <div className="flex gap-2">
-          <div className="h-8 w-8 rounded-lg bg-gray-200" />
-          <div className="h-8 w-8 rounded-lg bg-gray-200" />
+          <div className="h-9 w-9 rounded-xl bg-gray-200" />
+          <div className="h-9 w-9 rounded-xl bg-gray-200" />
         </div>
       </div>
     </div>
@@ -40,22 +52,27 @@ function SkeletonCard() {
 // ── Empty State ────────────────────────────────────────────────────────────────
 function EmptyState({ onOpen }: { onOpen: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-      <div className="rounded-2xl bg-gray-100 p-5">
-        <FileText size={36} className="text-gray-400" />
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white/70 px-6 py-24 text-center shadow-sm">
+      <div className="rounded-3xl bg-gray-100 p-6 shadow-inner">
+        <FileText size={42} className="text-gray-400" />
       </div>
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">No forms yet</h3>
-        <p className="text-sm text-gray-500 mt-1 max-w-xs">
-          Create your first form and start collecting responses.
+
+      <div className="mt-5">
+        <h3 className="text-xl font-semibold text-gray-900">
+          No forms yet
+        </h3>
+
+        <p className="mt-2 max-w-sm text-sm text-gray-500">
+          Create your first form and start collecting responses from users.
         </p>
       </div>
+
       <button
         onClick={onOpen}
-        className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-gray-800 active:scale-[0.98]"
       >
         <Plus size={16} />
-        Create a Form
+        Create Form
       </button>
     </div>
   );
@@ -68,7 +85,9 @@ function FormCard({ form }: { form: Form }) {
     draft: "bg-amber-50 text-amber-700",
     archived: "bg-gray-100 text-gray-500",
   };
+
   const status = form.status ?? "draft";
+
   const date = new Date(form.createdAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -76,47 +95,51 @@ function FormCard({ form }: { form: Form }) {
   });
 
   return (
-    <div className="group rounded-xl border border-gray-200 bg-white p-5 flex flex-col gap-3 transition hover:border-gray-400 hover:shadow-md cursor-pointer">
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white/90 p-5 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-xl cursor-pointer">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-black via-gray-700 to-gray-400 opacity-80" />
+
       <div className="flex items-center justify-between">
         <span
-          className={`text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-full ${statusStyle[status]}`}
+          className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusStyle[status]}`}
         >
           {status}
         </span>
+
         <span className="text-xs text-gray-400">{date}</span>
       </div>
 
-      <h3 className="font-semibold text-gray-900 text-base leading-snug">{form.title}</h3>
+      <h3 className="mt-4 text-lg font-semibold text-gray-900 transition group-hover:text-black">
+        {form.title}
+      </h3>
 
-      {form.description && <p className="text-sm text-gray-500 line-clamp-2">{form.description}</p>}
+      {form.description && (
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">
+          {form.description}
+        </p>
+      )}
 
-      <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
         <span className="flex items-center gap-1.5 text-xs text-gray-400">
           <FileText size={13} />
           {form.responseCount ?? 0} responses
         </span>
-        <div className="flex gap-1.5">
-          {/* <button
-            onClick={(e) => e.stopPropagation()}
-            className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-gray-400 hover:text-gray-700"
-            aria-label="Edit"
-          >
-            <Pencil size={13} />
-          </button> */}
+
+        <div className="flex gap-2">
           <Link
             href={`/dashboard/forms/${form.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-gray-400 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 transition-all hover:border-black hover:text-black hover:shadow-sm"
             aria-label="Edit"
           >
-            <Pencil size={13} />
+            <Pencil size={14} />
           </Link>
+
           <button
             onClick={(e) => e.stopPropagation()}
-            className="h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:border-gray-400 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-400 transition-all hover:border-black hover:text-black hover:shadow-sm"
             aria-label="Share"
           >
-            <Share2 size={13} />
+            <Share2 size={14} />
           </button>
         </div>
       </div>
@@ -128,25 +151,75 @@ function FormCard({ form }: { form: Form }) {
 export default function FormsPage() {
   // Modal state
   const [open, setOpen] = useState(false);
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
+  const [visibility, setVisibility] = useState<
+    "PUBLIC" | "UNLISTED" | "PRIVATE"
+  >("UNLISTED");
+
+  const [allowEmbed, setAllowEmbed] = useState(true);
+
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+
+  const [password, setPassword] = useState("");
+
+  const [expiryDate, setExpiryDate] = useState("");
+
+  const [responseLimit, setResponseLimit] = useState("");
+
   // List state
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "published" | "draft" | "archived">("all");
+
+  const [filter, setFilter] = useState<
+    "all" | "published" | "draft" | "archived"
+  >("all");
 
   // Hooks
   const { createFormAsync, status: createStatus } = useCreateForm();
+
   const { forms, isLoading, isFetching, error } = useListForm();
 
   const isCreating = createStatus === "pending";
 
   const handleCreateForm = async () => {
     if (!title.trim()) return;
+
     try {
-      await createFormAsync({ title, description });
+      await createFormAsync({
+        title,
+
+        description: description.trim() || undefined,
+
+        visibility,
+
+        isPasswordProtected,
+
+        passwordHash: isPasswordProtected ? password : undefined,
+
+        expiryDate: expiryDate ? new Date(expiryDate) : undefined,
+
+        responseLimit: responseLimit
+          ? Number(responseLimit)
+          : undefined,
+      });
+
       setTitle("");
       setDescription("");
+
+      setVisibility("UNLISTED");
+
+      setAllowEmbed(true);
+
+      setIsPasswordProtected(false);
+
+      setPassword("");
+
+      setExpiryDate("");
+
+      setResponseLimit("");
+
       setOpen(false);
     } catch (err) {
       console.error(err);
@@ -157,30 +230,36 @@ export default function FormsPage() {
     const matchesSearch =
       f.title.toLowerCase().includes(search.toLowerCase()) ||
       f.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter = filter === "all" || f.status === filter;
+
+    const matchesFilter =
+      filter === "all" || f.status === filter;
+
     return matchesSearch && matchesFilter;
   });
 
   return (
     <>
-      <div className="flex flex-1 flex-col">
+      <div className="min-h-screen flex flex-1 flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
         <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="flex flex-col gap-6 py-4 md:py-6">
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-4 lg:px-6">
+            <div className="sticky top-0 z-10 flex flex-col gap-4 border-b border-gray-200 bg-white/80 px-4 py-4 backdrop-blur md:flex-row md:items-center md:justify-between lg:px-6">
               <div>
-                <h2 className="text-2xl font-semibold">
+                <h2 className="text-3xl font-bold tracking-tight text-gray-900">
                   Forms
                   {isFetching && !isLoading && (
-                    <span className="ml-2 inline-block h-2 w-2 rounded-full bg-black animate-pulse align-middle" />
+                    <span className="ml-2 inline-block h-2 w-2 animate-pulse rounded-full bg-black align-middle" />
                   )}
                 </h2>
-                <p className="text-sm text-muted-foreground">Manage and share all your forms.</p>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Manage and share all your forms.
+                </p>
               </div>
 
               <button
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:scale-[1.02] hover:bg-gray-800 active:scale-[0.98]"
               >
                 <Plus size={16} />
                 Create Form
@@ -188,31 +267,34 @@ export default function FormsPage() {
             </div>
 
             {/* ── Toolbar ── */}
-            <div className="flex flex-wrap items-center gap-3 px-4 lg:px-6">
+            <div className="flex flex-col gap-3 px-4 md:flex-row md:items-center lg:px-6">
               {/* Search */}
-              <div className="relative flex-1 min-w-[180px] max-w-xs">
+              <div className="relative w-full md:max-w-sm">
                 <Search
                   size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
                 />
+
                 <input
                   type="text"
-                  placeholder="Search forms…"
+                  placeholder="Search forms..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-lg border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm outline-none transition focus:border-gray-400"
+                  className="w-full rounded-xl border border-gray-200 bg-white/90 pl-10 pr-4 py-2.5 text-sm shadow-sm outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
                 />
               </div>
 
               {/* Filter tabs */}
-              <div className="flex gap-1 rounded-lg border border-gray-200 bg-white p-1">
-                {(["all", "published", "draft", "archived"] as const).map((f) => (
+              <div className="flex flex-wrap gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+                {(
+                  ["all", "published", "draft", "archived"] as const
+                ).map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition ${
+                    className={`rounded-lg px-4 py-2 text-xs font-medium capitalize transition-all ${
                       filter === f
-                        ? "bg-black text-white"
+                        ? "bg-black text-white shadow-sm"
                         : "text-gray-500 hover:bg-gray-100 hover:text-gray-800"
                     }`}
                   >
@@ -223,16 +305,17 @@ export default function FormsPage() {
 
               {/* Count */}
               {!isLoading && (
-                <span className="ml-auto text-xs text-gray-400">
-                  {filtered?.length ?? 0} form{filtered?.length !== 1 ? "s" : ""}
+                <span className="text-xs text-gray-400 md:ml-auto">
+                  {filtered?.length ?? 0} form
+                  {filtered?.length !== 1 ? "s" : ""}
                 </span>
               )}
             </div>
 
             {/* ── Error ── */}
             {error && (
-              <div className="mx-4 lg:mx-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                <AlertCircle size={15} />
+              <div className="mx-4 flex items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 lg:mx-6">
+                <AlertCircle size={16} />
                 Failed to load forms — {error.message}
               </div>
             )}
@@ -240,15 +323,16 @@ export default function FormsPage() {
             {/* ── Grid ── */}
             <div className="px-4 lg:px-6">
               {isLoading ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <SkeletonCard key={i} />
                   ))}
                 </div>
-              ) : !error && (!filtered || filtered.length === 0) ? (
+              ) : !error &&
+                (!filtered || filtered.length === 0) ? (
                 <EmptyState onOpen={() => setOpen(true)} />
               ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                   {filtered?.map((form) => (
                     <FormCard key={form.id} form={form} />
                   ))}
@@ -261,62 +345,211 @@ export default function FormsPage() {
 
       {/* ── Create Form Modal ── */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-black/30 shadow-xl border border-white/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-white/20 bg-white shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/30 p-5">
+            <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5">
               <div>
-                <h3 className="text-xl font-semibold">Create New Form</h3>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Create New Form
+                </h3>
+
                 <p className="mt-1 text-sm text-gray-500">
-                  Fill the details below to create a form.
+                  Fill the details below to create your form.
                 </p>
               </div>
+
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-md p-2 transition hover:bg-gray-100 cursor-pointer"
+                className="rounded-xl p-2 text-gray-500 transition hover:bg-gray-100 hover:text-black"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="space-y-5 p-5">
+            <div className="max-h-[75vh] space-y-5 overflow-y-auto p-6">
+              {/* Title */}
               <div>
-                <label className="mb-2 block text-sm font-medium">Form Title</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Form Title
+                </label>
+
                 <input
                   type="text"
                   placeholder="Enter form title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg border border-gray-600 px-4 py-3 outline-none transition focus:border-white"
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
                 />
               </div>
+
+              {/* Description */}
               <div>
-                <label className="mb-2 block text-sm font-medium">Description</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Description
+                </label>
+
                 <textarea
                   placeholder="Enter form description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={4}
-                  className="w-full resize-none rounded-lg border border-gray-600 px-4 py-3 outline-none transition focus:border-white"
+                  className="w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
                 />
+              </div>
+
+              {/* Visibility */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Visibility
+                </label>
+
+                <select
+                  value={visibility}
+                  onChange={(e) =>
+                    setVisibility(
+                      e.target.value as
+                        | "PUBLIC"
+                        | "UNLISTED"
+                        | "PRIVATE"
+                    )
+                  }
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
+                >
+                  <option value="PUBLIC">Public</option>
+
+                  <option value="UNLISTED">Unlisted</option>
+
+                  <option value="PRIVATE">Private</option>
+                </select>
+              </div>
+
+              {/* Allow Embed */}
+              <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50/70 px-4 py-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    Allow Embed
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Allow this form to be embedded on websites
+                  </p>
+                </div>
+
+                <input
+                  type="checkbox"
+                  checked={allowEmbed}
+                  onChange={(e) =>
+                    setAllowEmbed(e.target.checked)
+                  }
+                  className="h-5 w-5 rounded border-gray-300"
+                />
+              </div>
+
+              {/* Password Protection */}
+              <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50/70 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      Password Protection
+                    </p>
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      Require password before users can access
+                      this form
+                    </p>
+                  </div>
+
+                  <input
+                    type="checkbox"
+                    checked={isPasswordProtected}
+                    onChange={(e) =>
+                      setIsPasswordProtected(
+                        e.target.checked
+                      )
+                    }
+                    className="h-5 w-5 rounded border-gray-300"
+                  />
+                </div>
+
+                {isPasswordProtected && (
+                  <input
+                    type="password"
+                    placeholder="Enter password"
+                    value={password}
+                    onChange={(e) =>
+                      setPassword(e.target.value)
+                    }
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
+                  />
+                )}
+              </div>
+
+              {/* Expiry Date */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Expiry Date
+                </label>
+
+                <input
+                  type="datetime-local"
+                  value={expiryDate}
+                  onChange={(e) =>
+                    setExpiryDate(e.target.value)
+                  }
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
+                />
+
+                <p className="mt-1 text-xs text-gray-500">
+                  Leave empty if form should never expire.
+                </p>
+              </div>
+
+              {/* Response Limit */}
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Response Limit
+                </label>
+
+                <input
+                  type="number"
+                  placeholder="e.g. 100"
+                  value={responseLimit}
+                  onChange={(e) =>
+                    setResponseLimit(e.target.value)
+                  }
+                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all focus:border-black focus:ring-4 focus:ring-black/5"
+                />
+
+                <p className="mt-1 text-xs text-gray-500">
+                  Leave empty for unlimited responses.
+                </p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-3 border-t p-5">
+            <div className="flex flex-col-reverse gap-3 border-t border-gray-100 bg-gray-50/50 px-6 py-5 sm:flex-row sm:justify-end">
               <button
                 onClick={() => setOpen(false)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium transition hover:border-red-500 hover:text-red-500 cursor-pointer"
+                className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:border-red-400 hover:text-red-500"
               >
                 Cancel
               </button>
+
               <button
                 onClick={handleCreateForm}
-                disabled={isCreating || !title.trim()}
-                className="cursor-pointer rounded-lg bg-black px-5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  isCreating ||
+                  !title.trim() ||
+                  (isPasswordProtected &&
+                    !password.trim())
+                }
+                className="rounded-xl bg-black px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-gray-800 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {isCreating ? "Creating..." : "Create Form"}
+                {isCreating
+                  ? "Creating..."
+                  : "Create Form"}
               </button>
             </div>
           </div>

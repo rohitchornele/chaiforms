@@ -14,6 +14,8 @@ import { usersTable } from "./user";
 
 export const formVisibilityEnum = pgEnum("form_visibility_enum", ["PUBLIC", "UNLISTED", "PRIVATE"]);
 
+export const formStatusEnum = pgEnum("form_status_enum", ["DRAFT", "PUBLISHED", "ARCHIVE"]);
+
 export const formsTable = pgTable("forms", {
 
   id: uuid("id").primaryKey().defaultRandom(),
@@ -30,9 +32,11 @@ export const formsTable = pgTable("forms", {
 
   passwordHash: text("password_hash"),
 
-  publishedAt: timestamp("published_at").defaultNow(),
+  publishedAt: timestamp("published_at"),
 
   expiryDate: timestamp("expiry_date"),
+  
+  status : formStatusEnum("status").default("DRAFT").notNull(),
 
   responseLimit: integer("response_limit"),
 

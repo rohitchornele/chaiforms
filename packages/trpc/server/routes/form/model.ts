@@ -1,9 +1,18 @@
 import { z } from 'zod';
 
+const visibilityEnum = z.enum(['UNLISTED', 'PUBLIC', 'PRIVATE'])
+
 export const createFormInputModel = z.object({
-    title: z.string().describe("Title of the form"),
-    description: z.string().max(300).describe("Description of the form"),
+    title: z.string().max(64).describe('Title of the form'),
+    description: z.string().max(300).optional().describe('Description of the form'),
+    visibility: visibilityEnum.default("UNLISTED"),
+    isPasswordProtected: z.boolean().default(false),
+    passwordHash: z.string().optional(),
+    publishedAt: z.coerce.date().optional(),
+    expiryDate: z.coerce.date().optional(),
+    responseLimit: z.number().optional(),
 })
+
 
 export const createFormOutputModel = z.object({
     id: z.string().describe("ID of the created form")
