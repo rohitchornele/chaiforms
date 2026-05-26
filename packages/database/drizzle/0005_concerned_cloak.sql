@@ -1,0 +1,1 @@
+ALTER TABLE "forms" ALTER COLUMN "published_at" DROP DEFAULT;

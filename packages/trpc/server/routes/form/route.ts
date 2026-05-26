@@ -1,8 +1,8 @@
 import FormFieldService from "@repo/services/form-field";
 import { formFieldService, formService } from "../../services";
-import { authenticatedProcedure, router } from "../../trpc";
+import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormByIdInputModel, getFormByIdOutputModel, listFormsByUserIdOutputModel, updateFieldInputModel, updateFieldOutputModel } from "./model";
+import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormAndFieldByFormIdOutputModel, getFormAndFieldInputModel, getFormByIdInputModel, getFormByIdOutputModel, listFormsByUserIdOutputModel, updateFieldInputModel, updateFieldOutputModel } from "./model";
 import z from "zod";
 
 
@@ -10,6 +10,9 @@ const TAGS = ["Form"];
 const getPath = generatePath("/form");
 
 export const formRouter = router({
+
+
+    // -----------Form Procedures ----------------------
 
     createForm: authenticatedProcedure
         .meta({
@@ -23,8 +26,8 @@ export const formRouter = router({
         .input(createFormInputModel)
         .output(createFormOutputModel)
         .mutation(async ({ input, ctx }) => {
-            const { title, description, visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit  } = input;
-            const { id } = await formService.createForm({ title, description, createdBy: ctx.user.id,  visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit});
+            const { title, description, visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit } = input;
+            const { id } = await formService.createForm({ title, description, createdBy: ctx.user.id, visibility, isPasswordProtected, passwordHash, publishedAt, expiryDate, responseLimit });
             return { id };
         }),
 
@@ -46,22 +49,41 @@ export const formRouter = router({
         }),
 
 
-    getFormById: authenticatedProcedure
+    getFormById: publicProcedure
         .meta({
             openapi: {
                 method: "GET",
                 path: getPath("/getFormById"),
                 tags: TAGS,
-                protect: true,
             },
         })
         .input(getFormByIdInputModel)
         .output(getFormByIdOutputModel)
-        .query(async ({ input }) => {
+        .query(async ( {input} ) => {
             return await formService.getFormById({
-                id: input.id,
+                formId: input.formId,
             });
         }),
+
+
+        getFormAndFieldById: publicProcedure
+        .meta({
+            openapi: {
+                method: "GET",
+                path: getPath("/getFormAndFieldById"),
+                tags: TAGS,
+            },
+        })
+        .input(getFormAndFieldInputModel)
+        .output(getFormAndFieldByFormIdOutputModel)
+        .query(async ( {input} ) => {
+            return formService.getFormAndFieldsById({ formId: input.formId})
+        }),
+
+
+
+    // -----------Form Field Procedures ----------------------
+
 
     createField: authenticatedProcedure
         .meta({
@@ -92,6 +114,7 @@ export const formRouter = router({
         .mutation(async ({ input }) => {
             return await formFieldService.updateField(input)
         }),
+
 
     getField: authenticatedProcedure
         .meta({
@@ -124,6 +147,5 @@ export const formRouter = router({
         .mutation(async ({ input }) => {
             return await formFieldService.deleteField({ fieldId: input.fieldId })
         })
-
 
 })

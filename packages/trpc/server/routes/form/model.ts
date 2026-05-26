@@ -36,19 +36,17 @@ export const listFormsByUserIdOutputModel = z.array(
 
 
 export const getFormByIdInputModel = z.object({
-    id: z.string().uuid().describe('UUID of the form')
+    formId : z.string().uuid().describe('UUID of the form')
 })
 
 
 export const getFormByIdOutputModel = z.object({
-    id: z.string().describe("ID of the form"),
+    formId : z.string().describe("ID of the form"),
     title: z.string().describe("Title of the form"),
-    description: z.string().optional().describe("Description of the form"),
+    description: z.string().nullable().optional().describe("Description of the form"),
     createdAt: z.date().describe("Form creation date"),
-    updatedAt: z.date().optional().describe("Form last updated date"),
+    updatedAt: z.date().nullable().optional().optional().describe("Form last updated date"),
 })
-
-
 
 const fieldTypeEnum = z.enum(['TEXT', 'NUMBER', 'EMAIL', 'YES_NO', 'PASSWORD'])
 
@@ -107,6 +105,46 @@ export const deleteFieldInputModel = z.object({
 export const deleteFieldOutputModel = z.object({
     fieldId: z.string().uuid().describe('UUID of the deleted field'),
 })
+
+
+
+
+
+export const getFormAndFieldByFormIdInputModel = z.object({
+    formId : z.string().uuid().describe('UUID of the form')
+})
+
+
+
+
+
+
+
+export const getFormAndFieldInputModel = z.object({
+    formId: z.string().uuid().describe('UUID of the form'),
+})
+
+
+export const getFormAndFieldOutputModel =z.object({
+    fieldId: z.string().describe("Id of the field"),
+    label: z.string().max(100).describe('Display name for the field'),
+    labelKey: z.string().describe("Translation key for label"),
+    type: fieldTypeEnum.describe("Type of the field"),
+    description: z.string().nullable().optional(),
+    placeholder: z.string().optional().nullable(),
+    isRequired: z.boolean(),
+    orderIndex: z.string().describe("Fractional index for ordering")
+})
+
+
+export const getFormAndFieldByFormIdOutputModel = z.object({
+    formId : z.string().describe("ID of the form"),
+    title: z.string().describe("Title of the form"),
+    description: z.string().nullable().optional().describe("Description of the form"),
+    createdAt: z.date().describe("Form creation date"),
+    updatedAt: z.date().nullable().optional().optional().describe("Form last updated date"),
+    fields : z.array(getFormAndFieldOutputModel)
+}).nullable()
 
 
 

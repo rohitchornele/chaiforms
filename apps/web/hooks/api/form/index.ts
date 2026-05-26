@@ -45,8 +45,8 @@ export const useListForm = () => {
 
 }
 
-export const useGetForm = (id: string) => {
-  const { data: form, isLoading, error } = trpc.form.getFormById.useQuery({ id });
+export const useGetForm = (formId: string) => {
+  const { data: form, isLoading, error } = trpc.form.getFormById.useQuery({ formId });
   return { form, isLoading, error };
 };
 
@@ -149,6 +149,15 @@ export const useDeleteField = ( fieldId: string ) => {
       isIdle,
       isSuccess,
       status,
+   }
+}
+
+
+export const useGetFormAndField = (formId : string) => {
+   const { data: form, error, isFetched, isFetching, isLoading, status } = trpc.form.getFormAndFieldById.useQuery({ formId })
+
+   return {
+      form, error, isFetched, isFetching, isLoading, status
    }
 }
 
