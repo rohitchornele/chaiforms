@@ -1,8 +1,9 @@
-import FormFieldService from "@repo/services/form-field";
-import { formFieldService, formService } from "../../services";
+
+import { getFormSubmissionsOutputModel } from "@repo/services/form-submission/model";
+import { formFieldService, formService, submissionService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormAndFieldByFormIdOutputModel, getFormAndFieldInputModel, getFormByIdInputModel, getFormByIdOutputModel, listFormsByUserIdOutputModel, updateFieldInputModel, updateFieldOutputModel } from "./model";
+import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormAndFieldByFormIdOutputModel, getFormAndFieldInputModel, getFormByIdInputModel, getFormByIdOutputModel, getFormSubmissionsInputModel, listFormsByUserIdOutputModel, submitFormInputModel, submitFormOutputModel, updateFieldInputModel, updateFieldOutputModel } from "./model";
 import z from "zod";
 
 
@@ -59,14 +60,14 @@ export const formRouter = router({
         })
         .input(getFormByIdInputModel)
         .output(getFormByIdOutputModel)
-        .query(async ( {input} ) => {
+        .query(async ({ input }) => {
             return await formService.getFormById({
                 formId: input.formId,
             });
         }),
 
 
-        getFormAndFieldById: publicProcedure
+    getFormAndFieldById: publicProcedure
         .meta({
             openapi: {
                 method: "GET",
@@ -76,8 +77,27 @@ export const formRouter = router({
         })
         .input(getFormAndFieldInputModel)
         .output(getFormAndFieldByFormIdOutputModel)
-        .query(async ( {input} ) => {
-            return formService.getFormAndFieldsById({ formId: input.formId})
+        .query(async ({ input }) => {
+            return formService.getFormAndFieldsById({ formId: input.formId })
+        }),
+
+
+
+    getFormSubmissions: authenticatedProcedure
+        .meta({
+            openapi: {
+                method: "GET",
+                path: getPath(
+                    "/getFormSubmissions"
+                ),
+                tags: TAGS,
+                protect: true,
+            },
+        })
+        .input(getFormSubmissionsInputModel )
+        .output( getFormSubmissionsOutputModel ) 
+        .query(async ({ input, ctx }) => {
+            return submissionService.getFormSubmissions({ formId: input.formId },ctx.user.id);
         }),
 
 
@@ -146,6 +166,23 @@ export const formRouter = router({
         .output(deleteFieldOutputModel)
         .mutation(async ({ input }) => {
             return await formFieldService.deleteField({ fieldId: input.fieldId })
-        })
+        }),
 
+
+
+    // submit form route
+
+    submitForm: publicProcedure
+        .meta({
+            openapi: {
+                method: "POST",
+                path: getPath("/submitForm"),
+                tags: TAGS,
+            },
+        })
+        .input(submitFormInputModel)
+        .output(submitFormOutputModel)
+        .mutation(async ({ input }) => {
+            return await submissionService.createSubmission(input)
+        })
 })

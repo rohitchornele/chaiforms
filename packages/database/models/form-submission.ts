@@ -11,36 +11,20 @@ import { formsTable } from "./form";
 
 export type FormSubmissionValues = Record<string, string>;
 
-export const submissionStatusEnum = pgEnum(
-  "submission_status",
-  [
-    "PENDING",
-    "COMPLETED",
-    "REJECTED",
-    "SPAM",
-  ]
-);
+export const submissionStatusEnum = pgEnum("submission_status", ["PENDING", "COMPLETED"]);
 
-export const formSubmissionTable = pgTable(
-  "form_submissions",
-  {
+export const formSubmissionTable = pgTable("form_submissions", {
 
-    id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id").primaryKey().defaultRandom(),
 
-    formId: uuid("form_id").notNull().references(() => formsTable.id),
+  formId: uuid("form_id").notNull().references(() => formsTable.id),
 
-    submittedBy: uuid("submitted_by"),
+  responses: json("responses").$type<FormSubmissionValues>().notNull(),
 
-    responses: json("responses").$type<FormSubmissionValues>().notNull(),
+  status: submissionStatusEnum("status").default("PENDING").notNull(),
 
-    ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 
-    userAgent: text("user_agent"),
-
-    status: submissionStatusEnum("status").default("PENDING").notNull(),
-
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-
-    updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
-  }
+  updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+}
 );

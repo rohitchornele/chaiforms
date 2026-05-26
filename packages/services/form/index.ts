@@ -69,6 +69,7 @@ class FormService {
             formId: formsTable.id,
             title: formsTable.title,
             description: formsTable.description,
+            isPasswordProtected: formsTable.isPasswordProtected,
             createdAt: formsTable.createdAt,
             updatedAt: formsTable.updatedAt,
             field : {
@@ -89,12 +90,12 @@ class FormService {
 
         if(rows.length === 0) return null
 
-        const { formId, title, description, createdAt, updatedAt } = rows[0]!
+        const { formId, title, description, isPasswordProtected, createdAt, updatedAt } = rows[0]!
 
         const fields = rows.filter(r => r.field?.fieldId !== null)
         .map( r => r.field as NonNullable<typeof r.field>)
 
-        return { formId, title, description, createdAt, updatedAt, fields}
+        return { formId, title, description, isPasswordProtected, createdAt, updatedAt, fields}
 
     }
 

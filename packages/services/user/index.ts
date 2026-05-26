@@ -4,7 +4,6 @@ import { db, eq } from '@repo/database';
 import { usersTable } from '@repo/database/models/user';
 import { createUserWithEmailAndPasswordInput, generateUserTokenPayload, GenerateUserTokenPayloadType, signInUserWithEmailAndPasswordInput, signInUserWithEmailAndPasswordInputType, type CreateUserWithEmailAndPasswordInputType } from "./model";
 import { env } from '../env';
-import { error } from 'node:console';
 
 class UserService {
 

@@ -36,12 +36,12 @@ export const listFormsByUserIdOutputModel = z.array(
 
 
 export const getFormByIdInputModel = z.object({
-    formId : z.string().uuid().describe('UUID of the form')
+    formId: z.string().uuid().describe('UUID of the form')
 })
 
 
 export const getFormByIdOutputModel = z.object({
-    formId : z.string().describe("ID of the form"),
+    formId: z.string().describe("ID of the form"),
     title: z.string().describe("Title of the form"),
     description: z.string().nullable().optional().describe("Description of the form"),
     createdAt: z.date().describe("Form creation date"),
@@ -107,16 +107,9 @@ export const deleteFieldOutputModel = z.object({
 })
 
 
-
-
-
 export const getFormAndFieldByFormIdInputModel = z.object({
-    formId : z.string().uuid().describe('UUID of the form')
+    formId: z.string().uuid().describe('UUID of the form')
 })
-
-
-
-
 
 
 
@@ -125,7 +118,7 @@ export const getFormAndFieldInputModel = z.object({
 })
 
 
-export const getFormAndFieldOutputModel =z.object({
+export const getFormAndFieldOutputModel = z.object({
     fieldId: z.string().describe("Id of the field"),
     label: z.string().max(100).describe('Display name for the field'),
     labelKey: z.string().describe("Translation key for label"),
@@ -138,14 +131,55 @@ export const getFormAndFieldOutputModel =z.object({
 
 
 export const getFormAndFieldByFormIdOutputModel = z.object({
-    formId : z.string().describe("ID of the form"),
+    formId: z.string().describe("ID of the form"),
     title: z.string().describe("Title of the form"),
     description: z.string().nullable().optional().describe("Description of the form"),
+    isPasswordProtected :z.boolean() ,
     createdAt: z.date().describe("Form creation date"),
     updatedAt: z.date().nullable().optional().optional().describe("Form last updated date"),
-    fields : z.array(getFormAndFieldOutputModel)
+    fields: z.array(getFormAndFieldOutputModel)
 }).nullable()
 
 
 
+export const formResponsesModel = z.record(
+    z.string(),
+    z.string()
+);
 
+
+export const submitFormInputModel = z.object({
+
+    formId: z.string().uuid().describe("UUID of the form"),
+
+    isPasswordProtected : z.boolean().optional().default(false),
+
+    responses: formResponsesModel.describe("Form field responses"),
+
+    password: z.string().optional().describe("Password for protected forms"),
+})
+
+
+export const submitFormOutputModel = z.object({
+  submissionId: z.string(),
+});
+
+
+// validation for getting submissions
+export const getFormSubmissionsInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+});
+
+
+export const formSubmissionResponseModel = z.record(z.string(),z.string());
+
+export const formSubmissionItemModel = z.object({
+
+  submissionId: z.string(),
+  formId: z.string(),
+  responses: formSubmissionResponseModel,
+  status: z.enum(["PENDING", "COMPLETED"]),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+
+});
