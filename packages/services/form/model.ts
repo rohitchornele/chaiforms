@@ -97,55 +97,120 @@ export type UpdateFormOutputType = z.infer<typeof updateFormOutputModel>;
 
 
 export const updateFormPasswordInputModel =
-  z.object({
+    z.object({
 
-    formId: z
-      .string()
-      .uuid(),
+        formId: z
+            .string()
+            .uuid(),
 
-    isPasswordProtected:
-      z.boolean(),
+        isPasswordProtected:
+            z.boolean(),
 
-    password: z
-      .string()
-      .min(4)
-      .max(100)
-      .optional(),
+        password: z
+            .string()
+            .min(4)
+            .max(100)
+            .optional(),
 
-  })
-  .superRefine(
-    (data, ctx) => {
+    })
+        .superRefine(
+            (data, ctx) => {
 
-      // Password required
-      // when protection enabled
-      if (
-        data.isPasswordProtected &&
-        !data.password
-      ) {
+                // Password required
+                // when protection enabled
+                if (
+                    data.isPasswordProtected &&
+                    !data.password
+                ) {
 
-        ctx.addIssue({
+                    ctx.addIssue({
 
-          code:
-            z.ZodIssueCode.custom,
+                        code:
+                            z.ZodIssueCode.custom,
 
-          path: ["password"],
+                        path: ["password"],
 
-          message:
-            "Password is required",
-        });
-      }
-    }
-  );
+                        message:
+                            "Password is required",
+                    });
+                }
+            }
+        );
 
 export const updateFormPasswordOutputModel =
-  z.object({
+    z.object({
 
-    success: z.boolean(),
+        success: z.boolean(),
 
-    message: z.string(),
-  });
+        message: z.string(),
+    });
 
 export type UpdateFormPasswordInputType =
-  z.infer<
-    typeof updateFormPasswordInputModel
-  >;
+    z.infer<
+        typeof updateFormPasswordInputModel
+    >;
+
+
+const fieldTypeEnum = z.enum(["TEXT", "NUMBER", "EMAIL", "YES_NO", "PASSWORD"]);
+
+
+export const getPublicFormBySlugInputModel =
+    z.object({ slug: z.string(), });
+
+
+export const getPublicFormBySlugOutputModel =
+    z.object({
+
+        formId:
+            z.string(),
+
+        title:
+            z.string(),
+
+        slug:
+            z.string(),
+
+        description:
+            z.string()
+                .nullable()
+                .optional(),
+
+        isPasswordProtected:
+            z.boolean(),
+
+        fields:
+            z.array(
+
+                z.object({
+
+                    fieldId:
+                        z.string(),
+
+                    label:
+                        z.string(),
+
+                    labelKey:
+                        z.string(),
+
+                    type: fieldTypeEnum,
+
+                    isRequired:
+                        z.boolean(),
+
+                    placeholder:
+                        z.string()
+                            .nullable()
+                            .optional(),
+
+                    description:
+                        z.string()
+                            .nullable()
+                            .optional(),
+
+                    orderIndex:
+                        z.string(),
+                })
+            ),
+    });
+
+export type GetPublicFormBySlugInputType = z.infer<typeof getPublicFormBySlugInputModel>;

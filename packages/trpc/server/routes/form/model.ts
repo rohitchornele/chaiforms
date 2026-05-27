@@ -25,6 +25,7 @@ export const listFormsByUserIdOutputModel = z.array(
     z.object({
         id: z.string().describe("ID of the form"),
         title: z.string().describe("Title of the form"),
+        slug:z.string(),
         description: z.string().nullable().describe("Description of the form"),
         createdAt: z.date().describe("Form creation date"),
         updatedAt: z.date().nullable().describe("Form last updated date"),
@@ -39,6 +40,8 @@ export const getFormByIdOutputModel = z.object({
     formId: z.string().describe("ID of the form"),
 
     title: z.string().describe("Title of the form"),
+
+    slug:z.string(),
 
     description: z.string().nullable().optional().describe("Description of the form"),
 
@@ -256,3 +259,66 @@ export const updateFormPasswordOutputModel = z.object({
     success: z.boolean(),
     message: z.string(),
 });
+
+
+
+
+
+export const getPublicFormBySlugInputModel =
+    z.object({ slug: z.string(), });
+
+
+export const getPublicFormBySlugOutputModel =
+    z.object({
+
+        formId:
+            z.string(),
+
+        title:
+            z.string(),
+
+        slug:
+            z.string(),
+
+        description:
+            z.string()
+                .nullable()
+                .optional(),
+
+        isPasswordProtected:
+            z.boolean(),
+
+        fields:
+            z.array(
+
+                z.object({
+
+                    fieldId:
+                        z.string(),
+
+                    label:
+                        z.string(),
+
+                    labelKey:
+                        z.string(),
+
+                    type: fieldTypeEnum,
+
+                    isRequired:
+                        z.boolean(),
+
+                    placeholder:
+                        z.string()
+                            .nullable()
+                            .optional(),
+
+                    description:
+                        z.string()
+                            .nullable()
+                            .optional(),
+
+                    orderIndex:
+                        z.string(),
+                })
+            ),
+    });

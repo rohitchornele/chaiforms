@@ -9,9 +9,12 @@ export type FormVisibility =
   | "PRIVATE";
 
 export type Form = {
+  
   id: string;
 
   title: string;
+
+  slug : string;
 
   description?: string;
 

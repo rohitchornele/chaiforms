@@ -1,9 +1,13 @@
+import { nanoid } from "nanoid";
+
 import { and, asc, db, eq } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import {
     createFormInput,
     getFormByIdInput,
     GetFormByIdInputType,
+    getPublicFormBySlugInputModel,
+    GetPublicFormBySlugInputType,
     listFormsByUserIdInput,
     ListFormsByUserIdInputType,
     updateFormInputModel,
@@ -15,6 +19,16 @@ import {
 } from "./model";
 import { formFieldsTable } from "@repo/database/models/form-field";
 import { createHmac, randomBytes } from "node:crypto";
+
+function generateSlug(title: string) {
+    const cleanTitle = title
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+
+    return `${cleanTitle}-${nanoid(6)}`;
+}
 
 class FormService {
     public async createForm(payload: CreateFormInputType) {
@@ -33,6 +47,7 @@ class FormService {
             .insert(formsTable)
             .values({
                 title,
+                slug: generateSlug(title),
                 description,
                 createdBy,
                 visibility,
@@ -58,6 +73,7 @@ class FormService {
             .select({
                 id: formsTable.id,
                 title: formsTable.title,
+                slug: formsTable.slug,
                 description: formsTable.description,
                 createdAt: formsTable.createdAt,
                 updatedAt: formsTable.updatedAt,
@@ -75,6 +91,7 @@ class FormService {
             .select({
                 formId: formsTable.id,
                 title: formsTable.title,
+                slug: formsTable.slug,
                 description: formsTable.description,
                 visibility: formsTable.visibility,
                 isPasswordProtected: formsTable.isPasswordProtected,
@@ -227,9 +244,6 @@ class FormService {
         return updatedRows[0]!;
     }
 
-
-
-
     private async generateHash(salt: string, password: string) {
         return createHmac("sha256", salt).update(password).digest("hex");
     }
@@ -296,6 +310,97 @@ class FormService {
             message: validatedData.isPasswordProtected
                 ? "Password updated successfully"
                 : "Password protection removed successfully",
+        };
+    }
+
+    public async getPublicFormBySlug(payload: GetPublicFormBySlugInputType) {
+        const validatedData = await getPublicFormBySlugInputModel.parseAsync(payload);
+
+        // Get form
+        const formRows = await db
+            .select({
+                formId: formsTable.id,
+
+                title: formsTable.title,
+
+                slug: formsTable.slug,
+
+                description: formsTable.description,
+
+                visibility: formsTable.visibility,
+
+                status: formsTable.status,
+
+                expiryDate: formsTable.expiryDate,
+
+                responseLimit: formsTable.responseLimit,
+
+                isPasswordProtected: formsTable.isPasswordProtected,
+            })
+            .from(formsTable)
+            .where(eq(formsTable.slug, validatedData.slug))
+            .limit(1);
+
+        const form = formRows[0];
+
+        if (!form) {
+            throw new Error( "Form not found",);
+        }
+
+        // Visibility check
+        if (form.visibility === "PRIVATE") {
+            throw new Error("Form is private",);
+        }
+
+        if (form.status == "ARCHIVE") {
+            throw new Error("No longer accepting submissions",);
+        }
+
+        // Published check
+        if (form.status !== "PUBLISHED") {
+            throw new Error("Form is not published yet",);
+        }
+
+        // Expiry check
+        if (form.expiryDate && new Date() > form.expiryDate) {
+            throw new Error("Form has expired");
+        }
+
+        // Get fields
+        const fields = await db
+            .select({
+                fieldId: formFieldsTable.id,
+
+                label: formFieldsTable.label,
+
+                labelKey: formFieldsTable.labelKey,
+
+                type: formFieldsTable.type,
+
+                isRequired: formFieldsTable.isRequired,
+
+                placeholder: formFieldsTable.placeholder,
+
+                description: formFieldsTable.description,
+
+                orderIndex: formFieldsTable.orderIndex,
+            })
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.formId, form.formId))
+            .orderBy(asc(formFieldsTable.orderIndex));
+
+        return {
+            formId: form.formId,
+
+            title: form.title,
+
+            slug: form.slug,
+
+            description: form.description,
+
+            isPasswordProtected: form.isPasswordProtected,
+
+            fields,
         };
     }
 }
