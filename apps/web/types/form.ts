@@ -24,3 +24,13 @@ export type Form = {
 
   responseCount?: number;
 };
+
+export const FORM_THEMES = [
+  "sacred-tech",
+  "cyberpunk",
+  "anime",
+  "startup-os",
+] as const;
+
+export type FormTheme =
+  (typeof FORM_THEMES)[number];

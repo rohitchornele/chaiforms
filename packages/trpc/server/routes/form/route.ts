@@ -33,6 +33,7 @@ import {
   verifyFormPasswordOutputModel,
 } from "./model";
 import z from "zod";
+import { FormTheme } from "@repo/services/form/model";
 
 const TAGS = ["Form"];
 const getPath = generatePath("/form");
@@ -58,6 +59,7 @@ export const formRouter = router({
         visibility,
         isPasswordProtected,
         passwordHash,
+        theme,
         publishedAt,
         expiryDate,
         responseLimit,
@@ -69,6 +71,7 @@ export const formRouter = router({
         visibility,
         isPasswordProtected,
         passwordHash,
+        theme,
         publishedAt,
         expiryDate,
         responseLimit,
@@ -89,7 +92,13 @@ export const formRouter = router({
     .output(listFormsByUserIdOutputModel)
     .query(async ({ ctx }) => {
       const forms = await formService.listFormsByUserId({ userId: ctx.user.id });
-      return forms;
+      // return forms;
+      return forms.map((form) => ({
+        ...form,
+
+        theme:
+          form.theme as FormTheme,
+      }));
     }),
 
   getFormById: publicProcedure

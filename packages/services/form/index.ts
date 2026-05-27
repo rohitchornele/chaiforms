@@ -5,6 +5,7 @@ import { formsTable } from "@repo/database/models/form";
 import { formSubmissionTable } from "@repo/database/models/form-submission";
 import {
   createFormInput,
+  FormTheme,
   getFormByIdInput,
   GetFormByIdInputType,
   getPublicFormBySlugInputModel,
@@ -42,6 +43,7 @@ class FormService {
       visibility,
       isPasswordProtected,
       passwordHash,
+      theme,
       expiryDate,
       responseLimit,
     } = await createFormInput.parseAsync(payload);
@@ -56,6 +58,7 @@ class FormService {
         visibility,
         isPasswordProtected,
         passwordHash,
+        theme,
         expiryDate,
         responseLimit,
       })
@@ -83,6 +86,8 @@ class FormService {
 
         status: formsTable.status,
 
+        theme: formsTable.theme,
+
         createdAt: formsTable.createdAt,
 
         updatedAt: formsTable.updatedAt,
@@ -96,7 +101,13 @@ class FormService {
 
       .orderBy(desc(formsTable.createdAt));
 
-    return forms;
+    // return forms;
+    return forms.map((form) => ({
+      ...form,
+
+      theme:
+        form.theme as FormTheme,
+    }));
   }
 
   public async getFormById(payload: GetFormByIdInputType) {
@@ -113,6 +124,7 @@ class FormService {
         passwordHash: formsTable.passwordHash,
         publishedAt: formsTable.publishedAt,
         expiryDate: formsTable.expiryDate,
+        theme: formsTable.theme,
         responseLimit: formsTable.responseLimit,
         status: formsTable.status,
         createdAt: formsTable.createdAt,
@@ -129,7 +141,12 @@ class FormService {
       throw new Error("Something went wrong while fetching the form");
     }
 
-    return form;
+    return {
+      ...form,
+
+      theme:
+        form.theme as FormTheme,
+    };
   }
 
   public async getFormAndFieldsById(payload: GetFormByIdInputType) {
@@ -141,6 +158,7 @@ class FormService {
         title: formsTable.title,
         description: formsTable.description,
         isPasswordProtected: formsTable.isPasswordProtected,
+        theme: formsTable.theme,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
         field: {
@@ -161,13 +179,13 @@ class FormService {
 
     if (rows.length === 0) return null;
 
-    const { formId, title, description, isPasswordProtected, createdAt, updatedAt } = rows[0]!;
+    const { formId, title, description, theme, isPasswordProtected, createdAt, updatedAt } = rows[0]!;
 
     const fields = rows
       .filter((r) => r.field?.fieldId !== null)
       .map((r) => r.field as NonNullable<typeof r.field>);
 
-    return { formId, title, description, isPasswordProtected, createdAt, updatedAt, fields };
+    return { formId, title, description, theme, isPasswordProtected, createdAt, updatedAt, fields };
   }
 
   public async updateForm(
@@ -229,6 +247,8 @@ class FormService {
 
         responseLimit: validatedData.responseLimit,
 
+        theme: validatedData.theme,
+
         status: validatedData.status,
 
         updatedAt: new Date(),
@@ -251,12 +271,20 @@ class FormService {
 
         responseLimit: formsTable.responseLimit,
 
+        theme: formsTable.theme,
+
         status: formsTable.status,
 
         updatedAt: formsTable.updatedAt,
       });
 
-    return updatedRows[0]!;
+    return {
+      ...updatedRows[0]!,
+
+      theme:
+        updatedRows[0]!
+          .theme as FormTheme,
+    };
   }
 
   private async generateHash(salt: string, password: string) {
@@ -347,6 +375,8 @@ class FormService {
         responseLimit: formsTable.responseLimit,
 
         isPasswordProtected: formsTable.isPasswordProtected,
+
+        theme: formsTable.theme,
       })
       .from(formsTable)
       .where(eq(formsTable.slug, validatedData.slug))
@@ -410,6 +440,8 @@ class FormService {
       description: form.description,
 
       isPasswordProtected: form.isPasswordProtected,
+
+      theme: form.theme as FormTheme,
 
       fields,
     };
@@ -475,6 +507,8 @@ class FormService {
 
         status: formsTable.status,
 
+        theme: formsTable.theme,
+
         visibility: formsTable.visibility,
 
         responseCount: formsTable.responseCount,
@@ -498,7 +532,13 @@ class FormService {
 
       .offset((page - 1) * limit);
 
-    return forms;
+    // return forms;
+    return forms.map((form) => ({
+      ...form,
+
+      theme:
+        form.theme as FormTheme,
+    }));
   }
 }
 

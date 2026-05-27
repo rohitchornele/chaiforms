@@ -50,6 +50,13 @@
       "when": 1779895427295,
       "tag": "0006_clever_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779901385138,
+      "tag": "0007_cooing_callisto",
+      "breakpoints": true
     }
   ]
 }

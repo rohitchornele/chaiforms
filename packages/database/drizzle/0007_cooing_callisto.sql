@@ -1,0 +1,1 @@
+ALTER TABLE "forms" ADD COLUMN "theme" text DEFAULT 'sacred-tech' NOT NULL;

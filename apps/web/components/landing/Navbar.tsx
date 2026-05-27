@@ -6,22 +6,14 @@ import { useState } from "react";
 
 import { motion } from "framer-motion";
 
-import {
-  Menu,
-  X,
-  ArrowRight,
-} from "lucide-react";
+import { Menu, X, ArrowRight } from "lucide-react";
 
 type Props = {
   isLoggedIn?: boolean;
 };
 
-export default function Navbar({
-  isLoggedIn = false,
-}: Props) {
-
-  const [open, setOpen] =
-    useState(false);
+export default function Navbar({ isLoggedIn = false }: Props) {
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 py-4 md:px-8">
@@ -40,10 +32,7 @@ export default function Navbar({
         className="mx-auto flex max-w-7xl items-center justify-between rounded-full border border-white/10 bg-white/[0.04] px-6 py-4 shadow-[0_0_40px_rgba(0,0,0,0.25)] backdrop-blur-2xl"
       >
         {/* Logo */}
-        <Link
-          href="/"
-          className="group relative"
-        >
+        <Link href="/" className="group relative">
           <div className="absolute inset-0 rounded-full bg-[#C9732B]/20 blur-xl transition-opacity duration-500 group-hover:opacity-100" />
 
           <h1 className="relative font-serif text-2xl tracking-[-0.03em] text-[#F3EBDD] md:text-3xl">
@@ -71,7 +60,7 @@ export default function Navbar({
             },
             {
               label: "Pricing",
-              href: "#pricing",
+              href: "/pricing",
             },
           ].map((item) => (
             <Link
@@ -103,7 +92,6 @@ export default function Navbar({
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Begin Journey
-
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </span>
               </Link>
@@ -116,7 +104,6 @@ export default function Navbar({
               >
                 <span className="relative z-10 flex items-center gap-2">
                   Dashboard
-
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </span>
               </Link>
@@ -130,16 +117,10 @@ export default function Navbar({
 
         {/* Mobile Toggle */}
         <button
-          onClick={() =>
-            setOpen(!open)
-          }
+          onClick={() => setOpen(!open)}
           className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#F3EBDD] backdrop-blur-xl lg:hidden"
         >
-          {open ? (
-            <X className="h-5 w-5" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </motion.nav>
 
@@ -163,6 +144,10 @@ export default function Navbar({
           <div className="flex flex-col gap-5">
             {[
               {
+                label: "Home",
+                href: "/",
+              },
+              {
                 label: "Explore",
                 href: "/explore",
               },
@@ -176,16 +161,14 @@ export default function Navbar({
               },
               {
                 label: "Pricing",
-                href: "#pricing",
+                href: "/pricing",
               },
             ].map((item) => (
               <Link
                 key={item.label}
                 href={item.href}
                 className="border-b border-white/5 pb-4 text-sm uppercase tracking-[0.25em] text-[#D8D4CC]/70 transition hover:text-[#F3EBDD]"
-                onClick={() =>
-                  setOpen(false)
-                }
+                onClick={() => setOpen(false)}
               >
                 {item.label}
               </Link>

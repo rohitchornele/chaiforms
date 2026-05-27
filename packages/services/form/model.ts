@@ -4,6 +4,17 @@ const visibilityEnum = z.enum(["UNLISTED", "PUBLIC", "PRIVATE"]);
 
 const formStatusEnum = z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]);
 
+
+export const FORM_THEME_VALUES = [
+  "sacred-tech",
+  "cyberpunk",
+  "anime",
+  "startup-os",
+] as const;
+
+export type FormTheme =
+  (typeof FORM_THEME_VALUES)[number];
+
 export const createFormInput = z.object({
   title: z.string().max(64).describe("Title of the form"),
   description: z.string().max(300).optional().describe("Description of the form"),
@@ -11,6 +22,9 @@ export const createFormInput = z.object({
   visibility: visibilityEnum.default("UNLISTED"),
   isPasswordProtected: z.boolean().default(false),
   passwordHash: z.string().optional(),
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
   publishedAt: z.coerce.date().optional(),
   expiryDate: z.coerce.date().optional(),
   responseLimit: z.number().optional(),
@@ -40,6 +54,10 @@ export const updateFormInputModel = z
 
     visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
 
+    theme: z.enum(
+      FORM_THEME_VALUES
+    ),
+
     isPasswordProtected: z.boolean().default(false),
 
     publishedAt: z.date().nullable().optional(),
@@ -67,6 +85,10 @@ export const updateFormOutputModel = z.object({
   description: z.string().nullable(),
 
   visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
+
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
 
   isPasswordProtected: z.boolean(),
 
@@ -130,6 +152,10 @@ export const getPublicFormBySlugOutputModel = z.object({
 
   isPasswordProtected: z.boolean(),
 
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
+
   fields: z.array(
     z.object({
       fieldId: z.string(),
@@ -184,10 +210,17 @@ export const listPublicFormsOutput = z.array(
 
     visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
 
+    theme: z.enum(
+      FORM_THEME_VALUES
+    ),
+
     responseCount: z.number(),
 
     createdAt: z.date(),
   }),
+
+
+
 );
 
 

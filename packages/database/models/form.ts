@@ -42,6 +42,8 @@ export const formsTable = pgTable("forms", {
 
   responseCount: integer("response_count").default(0).notNull(),
 
+  theme: text("theme").notNull().default("sacred-tech"),
+
   createdBy: uuid("created_by").references(() => usersTable.id),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),

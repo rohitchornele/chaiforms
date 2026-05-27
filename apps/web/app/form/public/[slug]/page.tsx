@@ -8,6 +8,8 @@ import { Loader2, AlertCircle } from "lucide-react";
 
 import { useGetPublicForm, useVerifyFormPassword, useSubmitForm } from "~/hooks/api/form";
 
+import { FORM_THEMES, type FormTheme } from "~/lib/form-themes";
+
 export default function PublicFormPage() {
   const params = useParams();
 
@@ -22,6 +24,7 @@ export default function PublicFormPage() {
   const [values, setValues] = useState<Record<string, string>>({});
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+
 
   const {
     verifyPasswordAsync,
@@ -54,7 +57,7 @@ export default function PublicFormPage() {
 
     await submitFormAsync({
       formId: form.formId,
-      responses : values,
+      responses: values,
     });
 
     setIsSubmitted(true);
@@ -123,6 +126,7 @@ export default function PublicFormPage() {
     );
   }
 
+  const theme = FORM_THEMES[(form?.theme ?? "sacred-tech") as FormTheme];
   // Error Screen
   if (error || !form) {
     return (
@@ -139,7 +143,29 @@ export default function PublicFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 p-4 md:p-10">
+    <div
+      className={`
+    relative
+    min-h-screen
+    overflow-hidden
+    p-4
+    md:p-10
+    ${theme.page}
+  `}
+    >
+      <div className="absolute inset-0 overflow-hidden">
+
+  <div
+    className={`
+      absolute inset-0
+      bg-gradient-to-br
+      ${theme.backgroundGlow}
+    `}
+  />
+
+  <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
+
+</div>
       <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-10">
         {/* Header */}
         <div className="mb-8">

@@ -1,6 +1,12 @@
+import { FORM_THEME_VALUES } from "@repo/services/form/model";
 import { z } from "zod";
 
 const visibilityEnum = z.enum(["UNLISTED", "PUBLIC", "PRIVATE"]);
+
+
+
+
+const themeEnum = FORM_THEME_VALUES
 
 export const createFormInputModel = z.object({
   title: z.string().max(64).describe("Title of the form"),
@@ -8,6 +14,9 @@ export const createFormInputModel = z.object({
   visibility: visibilityEnum.default("UNLISTED"),
   isPasswordProtected: z.boolean().default(false),
   passwordHash: z.string().optional(),
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
   publishedAt: z.coerce.date().optional(),
   expiryDate: z.coerce.date().optional(),
   responseLimit: z.number().optional(),
@@ -28,6 +37,9 @@ export const listFormsByUserIdOutputModel = z.array(
     slug: z.string(),
     status: z.string(),
     description: z.string().nullable().describe("Description of the form"),
+    theme: z.enum(
+      FORM_THEME_VALUES
+    ),
     responseCount: z.number(),
     createdAt: z.date().describe("Form creation date"),
     updatedAt: z.date().nullable().describe("Form last updated date"),
@@ -52,6 +64,10 @@ export const getFormByIdOutputModel = z.object({
   isPasswordProtected: z.boolean(),
 
   passwordHash: z.string().nullable().optional().describe("Hashed password of protected form"),
+
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
 
   publishedAt: z.date().nullable().optional().describe("Form publish date"),
 
@@ -200,6 +216,10 @@ export const updateFormInputModel = z
 
     expiryDate: z.coerce.date().nullable().optional(),
 
+    theme: z.enum(
+      FORM_THEME_VALUES
+    ),
+
     responseLimit: z.number().int().positive().nullable().optional(),
 
     status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]),
@@ -229,6 +249,8 @@ export const updateFormOutputModel = z.object({
   expiryDate: z.coerce.date().nullable().optional(),
 
   responseLimit: z.number().nullable(),
+
+  theme: z.enum(FORM_THEME_VALUES),
 
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]),
 
@@ -272,6 +294,10 @@ export const getPublicFormBySlugOutputModel = z.object({
   slug: z.string(),
 
   description: z.string().nullable().optional(),
+
+  theme: z.enum(
+    FORM_THEME_VALUES
+  ),
 
   isPasswordProtected: z.boolean(),
 
@@ -326,6 +352,10 @@ export const listPublicFormsOutput = z.array(
     status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]),
 
     visibility: z.enum(["PUBLIC", "UNLISTED", "PRIVATE"]),
+
+    theme: z.enum(
+      FORM_THEME_VALUES
+    ),
 
     responseCount: z.number(),
 
