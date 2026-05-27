@@ -69,24 +69,6 @@ class FormService {
     return { id: result[0].id };
   }
 
-  // public async listFormsByUserId(payload: ListFormsByUserIdInputType) {
-  //     const { userId } = await listFormsByUserIdInput.parseAsync(payload);
-
-  //     const forms = await db
-  //         .select({
-  //             id: formsTable.id,
-  //             title: formsTable.title,
-  //             slug: formsTable.slug,
-  //             description: formsTable.description,
-  //             createdAt: formsTable.createdAt,
-  //             updatedAt: formsTable.updatedAt,
-  //         })
-  //         .from(formsTable)
-  //         .where(eq(formsTable.createdBy, userId));
-
-  //     return forms;
-  // }
-
   public async listFormsByUserId(payload: ListFormsByUserIdInputType) {
     const { userId } = await listFormsByUserIdInput.parseAsync(payload);
 
@@ -105,20 +87,12 @@ class FormService {
 
         updatedAt: formsTable.updatedAt,
 
-        responseCount: count(formSubmissionTable.id),
+        responseCount: formsTable.responseCount,
       })
 
       .from(formsTable)
 
-      .leftJoin(
-        formSubmissionTable,
-
-        eq(formsTable.id, formSubmissionTable.formId),
-      )
-
       .where(eq(formsTable.createdBy, userId))
-
-      .groupBy(formsTable.id)
 
       .orderBy(desc(formsTable.createdAt));
 
@@ -485,6 +459,46 @@ class FormService {
     return {
       success: true,
     };
+  }
+
+  public async listPublicForms(page = 1, limit = 12) {
+    const forms = await db
+
+      .select({
+        id: formsTable.id,
+
+        title: formsTable.title,
+
+        slug: formsTable.slug,
+
+        description: formsTable.description,
+
+        status: formsTable.status,
+
+        visibility: formsTable.visibility,
+
+        responseCount: formsTable.responseCount,
+
+        createdAt: formsTable.createdAt,
+      })
+
+      .from(formsTable)
+
+      .where(
+        and(
+          eq(formsTable.status, "PUBLISHED"),
+
+          eq(formsTable.visibility, "PUBLIC"),
+        ),
+      )
+
+      .orderBy(desc(formsTable.createdAt))
+
+      .limit(limit)
+
+      .offset((page - 1) * limit);
+
+    return forms;
   }
 }
 

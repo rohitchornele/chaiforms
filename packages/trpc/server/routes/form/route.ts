@@ -19,6 +19,8 @@ import {
   getPublicFormBySlugInputModel,
   getPublicFormBySlugOutputModel,
   listFormsByUserIdOutputModel,
+  listPublicFormsInput,
+  listPublicFormsOutput,
   submitFormInputModel,
   submitFormOutputModel,
   updateFieldInputModel,
@@ -211,6 +213,25 @@ export const formRouter = router({
 
     .mutation(async ({ input }) => {
       return formService.verifyFormPassword(input);
+    }),
+
+
+  listPublicForms: publicProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+
+        path: getPath("/exploreForms"),
+
+        tags: TAGS,
+      },
+    })
+
+    .input(listPublicFormsInput)
+
+    .output(listPublicFormsOutput)
+    .query(async ({ ctx, input }) => {
+      return formService.listPublicForms(input.page, input.limit);
     }),
 
   // -----------Form Field Procedures ----------------------

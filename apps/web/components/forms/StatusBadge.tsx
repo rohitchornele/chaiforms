@@ -7,19 +7,19 @@ type Props = {
 };
 
 export default function StatusBadge({
-  status = "draft",
+  status = "DRAFT",
 }: Props) {
   const styles: Record<
     FormStatus,
     string
   > = {
-    published:
+    PUBLISHED:
       "bg-emerald-50 text-emerald-700",
 
-    draft:
+    DRAFT:
       "bg-amber-50 text-amber-700",
 
-    archived:
+    ARCHIVE:
       "bg-gray-100 text-gray-500",
   };
 

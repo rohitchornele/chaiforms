@@ -18,7 +18,7 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
-    title: "Forms",
+    title: "Manage Forms",
     href: "/dashboard/forms",
     icon: FileText,
   },

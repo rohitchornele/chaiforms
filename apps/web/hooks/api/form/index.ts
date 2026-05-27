@@ -51,8 +51,8 @@ export const useListForm = () => {
 };
 
 export const useGetForm = (formId: string) => {
-  const { data: form, isLoading, error } = trpc.form.getFormById.useQuery({ formId });
-  return { form, isLoading, error };
+  const { data: forms, isLoading, error } = trpc.form.getFormById.useQuery({ formId });
+  return { forms, isLoading, error };
 };
 
 export const useGetFields = (formId: string) => {
@@ -361,3 +361,21 @@ export const useVerifyFormPassword = () => {
     reset,
   };
 };
+
+export function useListPublicForms(
+  page = 1,
+
+  limit = 12,
+) {
+  const { data, ...rest } = trpc.form.listPublicForms.useQuery({
+    page,
+
+    limit,
+  });
+
+  return {
+    forms: data,
+
+    ...rest,
+  };
+}

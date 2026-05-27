@@ -1,6 +1,13 @@
 import Link from "next/link";
 
-import { FileText, Pencil, Share2, Settings, Eye } from "lucide-react";
+import {
+  FileText,
+  Pencil,
+  Share2,
+  Settings,
+  Eye,
+  BarChart3,
+} from "lucide-react";
 
 import StatusBadge from "./StatusBadge";
 
@@ -10,12 +17,19 @@ type Props = {
   form: Form;
 };
 
-export default function FormCard({ form }: Props) {
-  const date = new Date(form.createdAt).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+export default function FormCard({
+  form,
+}: Props) {
+  const date = new Date(
+    form.createdAt
+  ).toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
+  );
 
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-border/80 hover:shadow-xl">
@@ -25,9 +39,13 @@ export default function FormCard({ form }: Props) {
       <div className="flex h-full flex-col justify-between">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <StatusBadge status={form.status} />
+          <StatusBadge
+            status={form.status}
+          />
 
-          <span className="text-xs font-medium text-muted-foreground">{date}</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {date}
+          </span>
         </div>
 
         {/* Title */}
@@ -47,7 +65,9 @@ export default function FormCard({ form }: Props) {
           {/* Responses */}
           <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <FileText size={13} />
-            {form.responseCount || 0} responses
+
+            {form.responseCount || 0}{" "}
+            responses
           </span>
 
           {/* Actions */}
@@ -61,13 +81,21 @@ export default function FormCard({ form }: Props) {
             </Link>
 
             {/* Preview */}
-            {/* <Link
-              href={`/forms/${form.slug || form.id}`}
+            <Link
+              href={`/form/public/${form.slug}`}
               target="_blank"
               className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
             >
               <Eye size={14} />
-            </Link> */}
+            </Link>
+
+            {/* Responses */}
+            <Link
+              href={`/dashboard/forms/${form.id}/submissions`}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+            >
+              <BarChart3 size={14} />
+            </Link>
 
             {/* Settings */}
             <Link
@@ -78,14 +106,19 @@ export default function FormCard({ form }: Props) {
             </Link>
 
             {/* Share */}
-            {form.status !== "draft" && (
+            {form.status !==
+              "DRAFT" && (
               <button
                 onClick={async () => {
                   const publicUrl = `${window.location.origin}/form/public/${form.slug}`;
 
-                  await navigator.clipboard.writeText(publicUrl);
+                  await navigator.clipboard.writeText(
+                    publicUrl
+                  );
 
-                  alert("Public form link copied!");
+                  alert(
+                    "Public form link copied!"
+                  );
                 }}
                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
               >

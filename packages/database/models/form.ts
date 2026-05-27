@@ -22,7 +22,7 @@ export const formsTable = pgTable("forms", {
 
   title: varchar("title", { length: 64 }).notNull(),
 
-  slug: varchar("slug", { length: 150,}).unique().notNull(),
+  slug: varchar("slug", { length: 150, }).unique().notNull(),
 
   description: varchar("description", { length: 300 }),
 
@@ -35,10 +35,12 @@ export const formsTable = pgTable("forms", {
   publishedAt: timestamp("published_at"),
 
   expiryDate: timestamp("expiry_date"),
-  
-  status : formStatusEnum("status").default("DRAFT").notNull(),
+
+  status: formStatusEnum("status").default("DRAFT").notNull(),
 
   responseLimit: integer("response_limit"),
+
+  responseCount: integer("response_count").default(0).notNull(),
 
   createdBy: uuid("created_by").references(() => usersTable.id),
 

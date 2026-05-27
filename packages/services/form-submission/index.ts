@@ -1,98 +1,114 @@
-import db, { and, desc, eq } from "@repo/database";
-import { createFormSubmissionInputModel, CreateFormSubmissionInputType, CreateFormSubmissionOutputType, getFormSubmissionsInputModel, GetFormSubmissionsInputType, GetFormSubmissionsOutputType } from "./model";
+import db, { and, desc, eq, sql } from "@repo/database";
+import {
+  createFormSubmissionInputModel,
+  CreateFormSubmissionInputType,
+  CreateFormSubmissionOutputType,
+  getFormSubmissionsInputModel,
+  GetFormSubmissionsInputType,
+  GetFormSubmissionsOutputType,
+} from "./model";
 import { formsTable } from "@repo/database/models/form";
 import { formSubmissionTable } from "@repo/database/models/form-submission";
 import { createHmac } from "node:crypto";
 
-
-
 class SubmissionService {
+  private async generateHash(salt: string, password: string) {
+    return createHmac("sha256", salt).update(password).digest("hex");
+  }
 
-    private async generateHash(salt: string, password: string) {
-        return createHmac('sha256', salt).update(password).digest('hex')
+  public async createSubmission(
+    payload: CreateFormSubmissionInputType,
+  ): Promise<CreateFormSubmissionOutputType> {
+    const { formId, responses, password } =
+      await createFormSubmissionInputModel.parseAsync(payload);
+
+    // Check form exists
+    const rows = await db.select().from(formsTable).where(eq(formsTable.id, formId)).limit(1);
+
+    const form = rows[0];
+
+    if (!form) {
+      throw new Error("Form not found");
     }
 
-    public async createSubmission(payload: CreateFormSubmissionInputType): Promise<CreateFormSubmissionOutputType> {
+    // Password validation
+    // if (form.isPasswordProtected) {
 
-        const { formId, responses, password } = await createFormSubmissionInputModel.parseAsync(payload);
+    //     if (!validatedData.password) {
+    //         throw new Error(
+    //             "Password is required"
+    //         );
+    //     }
 
-        // Check form exists
-        const rows = await db.select().from(formsTable).where(eq(formsTable.id, formId)).limit(1);
+    //     const isPasswordValid =
+    //         await bcrypt.compare(
+    //             validatedData.password,
+    //             form.passwordHash!
+    //         );
 
-        const form = rows[0];
+    //     if (!isPasswordValid) {
+    //         throw new Error(
+    //             "Invalid form password"
+    //         );
+    //     }
+    // }
 
-        if (!form) {
-            throw new Error("Form not found");
-        }
+    // Insert submission
+    const insertedSubmission = await db
+      .insert(formSubmissionTable)
+      .values({ formId, responses, status: "COMPLETED" })
+      .returning({
+        submissionId: formSubmissionTable.id,
+        formId: formSubmissionTable.formId,
+        status: formSubmissionTable.status,
+        createdAt: formSubmissionTable.createdAt,
+      });
 
-        // Password validation
-        // if (form.isPasswordProtected) {
+    await db
+      .update(formsTable)
+      .set({
+        responseCount: sql`${formsTable.responseCount} + 1`,
+      })
+      .where(eq(formsTable.id, formId));
 
-        //     if (!validatedData.password) {
-        //         throw new Error(
-        //             "Password is required"
-        //         );
-        //     }
+    return insertedSubmission[0]!;
+  }
 
-        //     const isPasswordValid =
-        //         await bcrypt.compare(
-        //             validatedData.password,
-        //             form.passwordHash!
-        //         );
+  public async getFormSubmissions(
+    payload: GetFormSubmissionsInputType,
+    userId: string,
+  ): Promise<GetFormSubmissionsOutputType> {
+    const validatedData = await getFormSubmissionsInputModel.parseAsync(payload);
 
-        //     if (!isPasswordValid) {
-        //         throw new Error(
-        //             "Invalid form password"
-        //         );
-        //     }
-        // }
+    // Verify form ownership
+    const formRows = await db
+      .select({ formId: formsTable.id })
+      .from(formsTable)
+      .where(and(eq(formsTable.id, validatedData.formId), eq(formsTable.createdBy, userId)))
+      .limit(1);
 
-        // Insert submission
-        const insertedSubmission =
-            await db
-                .insert(formSubmissionTable)
-                .values({ formId, responses, status: "COMPLETED" })
-                .returning({
-                    submissionId: formSubmissionTable.id,
-                    formId: formSubmissionTable.formId,
-                    status: formSubmissionTable.status,
-                    createdAt: formSubmissionTable.createdAt,
-                });
+    const form = formRows[0];
 
-        return insertedSubmission[0]!;
+    if (!form) {
+      throw new Error("Form not found or unauthorized");
     }
 
-    public async getFormSubmissions(payload: GetFormSubmissionsInputType, userId: string,): Promise<GetFormSubmissionsOutputType> {
+    // Get submissions
+    const submissions = await db
+      .select({
+        submissionId: formSubmissionTable.id,
+        formId: formSubmissionTable.formId,
+        responses: formSubmissionTable.responses,
+        status: formSubmissionTable.status,
+        createdAt: formSubmissionTable.createdAt,
+        updatedAt: formSubmissionTable.updatedAt,
+      })
+      .from(formSubmissionTable)
+      .where(eq(formSubmissionTable.formId, validatedData.formId))
+      .orderBy(desc(formSubmissionTable.createdAt));
 
-        const validatedData = await getFormSubmissionsInputModel.parseAsync(payload);
-
-        // Verify form ownership
-        const formRows = await db.select({ formId: formsTable.id, })
-            .from(formsTable)
-            .where(and(eq(formsTable.id, validatedData.formId), eq(formsTable.createdBy, userId)))
-            .limit(1);
-
-        const form = formRows[0];
-
-        if (!form) {
-            throw new Error(
-                "Form not found or unauthorized"
-            );
-        }
-
-        // Get submissions
-        const submissions = await db.select({
-            submissionId: formSubmissionTable.id,
-            formId: formSubmissionTable.formId,
-            responses: formSubmissionTable.responses,
-            status: formSubmissionTable.status,
-            createdAt: formSubmissionTable.createdAt,
-            updatedAt: formSubmissionTable.updatedAt,
-        }).from(formSubmissionTable).where(eq(formSubmissionTable.formId, validatedData.formId))
-            .orderBy(desc(formSubmissionTable.createdAt));
-
-        return submissions;
-    }
+    return submissions;
+  }
 }
 
 export default SubmissionService;

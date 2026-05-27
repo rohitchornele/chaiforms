@@ -1,7 +1,7 @@
 export type FormStatus =
-  | "draft"
-  | "published"
-  | "archived";
+  | "DRAFT"
+  | "PUBLISHED"
+  | "ARCHIVE";
 
 export type FormVisibility =
   | "PUBLIC"

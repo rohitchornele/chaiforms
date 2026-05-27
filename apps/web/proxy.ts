@@ -1,5 +1,3 @@
-// web/proxy.ts
-
 import { NextResponse } from "next/server";
 
 import type { NextRequest } from "next/server";
@@ -22,23 +20,28 @@ export function proxy(
     );
 
   const isAuthRoute =
+
     pathname.startsWith(
       "/login"
     ) ||
+
     pathname.startsWith(
       "/signup"
     );
 
-  // Protect dashboard routes
+  /*
+   * Protect Dashboard Routes
+   */
   if (
     isDashboardRoute &&
     !token
   ) {
 
-    const loginUrl = new URL(
-      "/login",
-      request.url
-    );
+    const loginUrl =
+      new URL(
+        "/login",
+        request.url
+      );
 
     loginUrl.searchParams.set(
       "callbackUrl",
@@ -50,8 +53,10 @@ export function proxy(
     );
   }
 
-  // Prevent logged-in users
-  // from visiting auth pages
+  /*
+   * Prevent Logged In Users
+   * From Visiting Auth Pages
+   */
   if (
     isAuthRoute &&
     token
@@ -65,13 +70,32 @@ export function proxy(
     );
   }
 
+  /*
+   * Allow Everything Else
+   *
+   * Including:
+   * /
+   * /explore
+   * /pricing
+   * /form/public/*
+   */
   return NextResponse.next();
 }
 
 export const config = {
+
   matcher: [
+
+    /*
+     * Protected Routes
+     */
     "/dashboard/:path*",
+
+    /*
+     * Auth Routes
+     */
     "/login",
+
     "/signup",
   ],
 };
