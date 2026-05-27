@@ -27,6 +27,7 @@ export const listFormsByUserIdOutputModel = z.array(
         title: z.string().describe("Title of the form"),
         slug: z.string(),
         description: z.string().nullable().describe("Description of the form"),
+        responseCount: z.number(),
         createdAt: z.date().describe("Form creation date"),
         updatedAt: z.date().nullable().describe("Form last updated date"),
     }),

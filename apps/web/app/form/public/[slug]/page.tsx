@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
+
 import { useParams } from "next/navigation";
 
 import { Loader2, AlertCircle } from "lucide-react";
 
-import { useGetPublicForm, useVerifyFormPassword } from "~/hooks/api/form";
-import { useState } from "react";
+import { useGetPublicForm, useVerifyFormPassword, useSubmitForm } from "~/hooks/api/form";
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -18,18 +19,61 @@ export default function PublicFormPage() {
 
   const [isUnlocked, setIsUnlocked] = useState(false);
 
+  const [values, setValues] = useState<Record<string, string>>({});
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const {
     verifyPasswordAsync,
     isPending: isVerifyingPassword,
     error: passwordError,
   } = useVerifyFormPassword();
 
+  const { submitFormAsync, isPending: isSubmitting } = useSubmitForm();
+
   const handleVerifyPassword = async () => {
-    await verifyPasswordAsync({ slug, password });
+    await verifyPasswordAsync({
+      slug,
+
+      password,
+    });
 
     setIsUnlocked(true);
   };
 
+  const handleChange = (fieldId: string, value: string) => {
+    setValues((prev) => ({
+      ...prev,
+
+      [fieldId]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!form) return;
+
+    await submitFormAsync({
+      formId: form.formId,
+      responses : values,
+    });
+
+    setIsSubmitted(true);
+  };
+
+  // Success Screen
+  if (isSubmitted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
+        <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
+          <h1 className="text-3xl font-bold text-zinc-900">🎉 Submitted</h1>
+
+          <p className="mt-3 text-zinc-500">Your response has been recorded successfully.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-100">
@@ -42,6 +86,7 @@ export default function PublicFormPage() {
     );
   }
 
+  // Password Screen
   if (form?.isPasswordProtected && !isUnlocked) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
@@ -78,6 +123,7 @@ export default function PublicFormPage() {
     );
   }
 
+  // Error Screen
   if (error || !form) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
@@ -118,6 +164,14 @@ export default function PublicFormPage() {
 
               <input
                 type="text"
+                value={values[field.fieldId] || ""}
+                onChange={(e) =>
+                  handleChange(
+                    field.fieldId,
+
+                    e.target.value,
+                  )
+                }
                 placeholder={field.placeholder || ""}
                 className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
               />
@@ -126,8 +180,12 @@ export default function PublicFormPage() {
         </div>
 
         {/* Submit */}
-        <button className="mt-8 w-full rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-black">
-          Submit Form
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="mt-8 w-full rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-black disabled:opacity-50"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Form"}
         </button>
       </div>
     </div>
