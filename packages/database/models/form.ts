@@ -22,11 +22,11 @@ export const formsTable = pgTable("forms", {
 
   title: varchar("title", { length: 64 }).notNull(),
 
+  slug: varchar("slug", { length: 150,}).unique().notNull(),
+
   description: varchar("description", { length: 300 }),
 
   visibility: formVisibilityEnum("visibility").default("UNLISTED").notNull(),
-
-  allowEmbed: boolean("allow_embed").default(true).notNull(),
 
   isPasswordProtected: boolean("is_password_protected").default(false).notNull(),
 

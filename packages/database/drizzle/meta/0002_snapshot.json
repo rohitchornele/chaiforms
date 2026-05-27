@@ -1,6 +1,6 @@
 {
-  "id": "fd40f688-c5df-4006-96a4-f1a1eb2cf15c",
-  "prevId": "bbb1231b-0200-4759-a3cc-27d68a2e25e7",
+  "id": "0d7c3aed-fe33-4cce-a52f-21bb4dea6fb9",
+  "prevId": "b2bab00c-5203-434c-b12c-46fc21a5b5c9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -107,6 +107,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "slug": {
+          "name": "slug",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "description": {
           "name": "description",
           "type": "varchar(300)",
@@ -145,14 +151,21 @@
           "name": "published_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
+          "notNull": false
         },
         "expiry_date": {
           "name": "expiry_date",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "form_status_enum",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'DRAFT'"
         },
         "response_limit": {
           "name": "response_limit",
@@ -320,6 +333,15 @@
         "ADMIN"
       ]
     },
+    "public.form_status_enum": {
+      "name": "form_status_enum",
+      "schema": "public",
+      "values": [
+        "DRAFT",
+        "PUBLISHED",
+        "ARCHIVE"
+      ]
+    },
     "public.form_visibility_enum": {
       "name": "form_visibility_enum",
       "schema": "public",
@@ -337,7 +359,7 @@
         "NUMBER",
         "EMAIL",
         "YES_NO",
-        "PASSWROD"
+        "PASSWORD"
       ]
     }
   },

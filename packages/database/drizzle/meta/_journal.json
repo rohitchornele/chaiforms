@@ -5,71 +5,43 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1779520646779,
-      "tag": "0000_nasty_living_tribunal",
+      "when": 1779884069368,
+      "tag": "0000_clumsy_boom_boom",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1779521273502,
-      "tag": "0001_fine_serpent_society",
+      "when": 1779884090165,
+      "tag": "0001_magical_mole_man",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1779521299241,
-      "tag": "0002_loose_jazinda",
+      "when": 1779884121913,
+      "tag": "0002_romantic_demogoblin",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1779613942575,
-      "tag": "0003_jazzy_the_initiative",
+      "when": 1779884140091,
+      "tag": "0003_clean_stick",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "7",
-      "when": 1779614008091,
-      "tag": "0004_wise_risque",
+      "when": 1779884185133,
+      "tag": "0004_stormy_umar",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "7",
-      "when": 1779693865451,
-      "tag": "0005_concerned_cloak",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1779693918501,
-      "tag": "0006_premium_stingray",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1779807308669,
-      "tag": "0007_new_venom",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1779807356333,
-      "tag": "0008_outstanding_amazoness",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1779814121290,
-      "tag": "0009_bored_spectrum",
+      "when": 1779884217352,
+      "tag": "0005_absurd_chamber",
       "breakpoints": true
     }
   ]

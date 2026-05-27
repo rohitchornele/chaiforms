@@ -28,12 +28,12 @@ const FIELD_TYPES: {
   value: FieldType;
   label: string;
 }[] = [
-  { value: "TEXT", label: "Text" },
-  { value: "NUMBER", label: "Number" },
-  { value: "EMAIL", label: "Email" },
-  { value: "YES_NO", label: "Yes / No" },
-  { value: "PASSWORD", label: "Password" },
-];
+    { value: "TEXT", label: "Text" },
+    { value: "NUMBER", label: "Number" },
+    { value: "EMAIL", label: "Email" },
+    { value: "YES_NO", label: "Yes / No" },
+    { value: "PASSWORD", label: "Password" },
+  ];
 
 function toLabelKey(label: string) {
   return label
@@ -264,6 +264,8 @@ function PreviewField({
 export default function FormBuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 
+  const { form, isLoading: isLoadingForm } = useGetForm(id);
+
   const [fields, setFields] = useState<FormField[]>([]);
 
   const [draft, setDraft] = useState<Omit<FormField, "id" | "orderIndex">>(emptyDraft());
@@ -398,12 +400,11 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+    <div className="flex flex-col bg-linear-to-br from-slate-50 via-white to-indigo-50 md:h-[91vh]">
       {/* ── Top bar ── */}
       <div className="sticky top-0 z-20 flex flex-col gap-4 border-b border-gray-200 bg-white/80 px-4 py-4 backdrop-blur md:flex-row md:items-center md:justify-between md:px-6">
-        <div>
+        <div className="flex items-center gap-5">
           <h2 className="text-2xl font-bold text-gray-900">Form Builder</h2>
-
           <p className="mt-1 text-sm text-gray-500">
             {fields.length} field
             {fields.length !== 1 ? "s" : ""} added
@@ -423,14 +424,14 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
           <div
             className={`
         fixed inset-y-0 left-0 z-40 w-full overflow-y-auto border-r border-gray-200 bg-white
-        transition-transform duration-300 lg:static lg:z-auto lg:block lg:w-[420px] lg:translate-x-0
+        transition-transform duration-300 lg:static lg:z-auto lg:block lg:w-[420px] lg:translate-x-0 
         ${showMobileBuilder ? "translate-x-0" : "-translate-x-full"}
       `}
           >
             {/* mobile top spacing */}
             <div className="h-[73px] lg:hidden" />
 
-            <div className="custom-scrollbar flex h-full flex-col gap-5 overflow-y-auto p-5">
+            <div className="custom-scrollbar flex h-full flex-col gap-5 overflow-y-auto p-5 lg:overflow-hidden">
               {/* mobile close */}
               <div className="flex items-center justify-between lg:hidden">
                 <div>
@@ -450,13 +451,12 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
               </div>
 
               {/* desktop heading */}
-              <div className="hidden lg:block">
+              {/* <div className="hidden lg:block">
                 <p className="text-xs font-semibold uppercase tracking-wider text-indigo-500">
                   New Field
                 </p>
 
-                {/* <h3 className="mt-1 text-lg font-semibold text-gray-900">Configure field</h3> */}
-              </div> 
+              </div>  */}
 
               {/* Label */}
               <div className="flex flex-col gap-2">
@@ -464,7 +464,7 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
 
                 <input
                   type="text"
-                  placeholder="e.g. Full name"
+                  placeholder="Label"
                   value={draft.label}
                   onChange={(e) =>
                     setDraftField({
@@ -490,8 +490,12 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
                         type: e.target.value as FieldType,
                       })
                     }
-                    className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-10 text-sm outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                    className="w-full appearance-none rounded-xl border  border-gray-200 bg-gray-50 px-4 py-3 pr-10 text-sm text-black outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10"
                   >
+                    {/* <option value="" disabled>
+                      Select field type
+                    </option> */}
+
                     {FIELD_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>
                         {t.label}
@@ -599,12 +603,14 @@ export default function FormBuilderPage({ params }: { params: Promise<{ id: stri
                 Add New Field
               </button>
 
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-500">
+              <div className="md:flex items-center gap-6">
+                <h3 className="text-2xl font-bold text-gray-900 ">
+                  {isLoadingForm ? "Loading..." : form?.title || "Untitled Form"}  <span className="text-indigo-500 ml-4">[Preview]</span>
+                </h3>
+                {/* <p className="text-xs font-semibold uppercase tracking-wider text-indigo-500">
                   Preview
-                </p>
+                </p> */}
 
-                <h3 className="text-2xl font-bold text-gray-900">Form Preview</h3>
               </div>
 
               {fields.length === 0 ? (

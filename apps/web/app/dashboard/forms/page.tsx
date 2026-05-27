@@ -15,26 +15,22 @@ export default function FormsPage() {
 
   const [search, setSearch] = useState("");
 
-  const [filter, setFilter] = useState<
-    "all" | "published" | "draft" | "archived"
-  >("all");
+  const [filter, setFilter] = useState<"all" | "published" | "draft" | "archived">("all");
 
-  const { forms, isLoading, isFetching, error } =
-    useListForm();
+  const { forms, isLoading, isFetching, error } = useListForm();
 
   const filteredForms = useMemo(() => {
     return (forms as Form[])?.filter((form) => {
-      const matchesSearch =
-        form.title
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        form.description
-          ?.toLowerCase()
-          .includes(search.toLowerCase());
+      const title = form.title?.toLowerCase() || "";
 
-      const matchesFilter =
-        filter === "all" ||
-        form.status === filter;
+      const description = form.description?.toLowerCase() || "";
+
+      const status = form.status?.toLowerCase() || "";
+
+      const matchesSearch =
+        title.includes(search.toLowerCase()) || description.includes(search.toLowerCase());
+
+      const matchesFilter = filter === "all" || status === filter;
 
       return matchesSearch && matchesFilter;
     });
@@ -42,19 +38,21 @@ export default function FormsPage() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-1 flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-        <div className="flex flex-col gap-6 py-4 md:py-6">
-          <FormsToolbar
-            search={search}
-            setSearch={setSearch}
-            filter={filter}
-            setFilter={setFilter}
-            count={filteredForms?.length || 0}
-            onCreate={() => setOpen(true)}
-            isFetching={isFetching}
-            isLoading={isLoading}
-          />
+      <div className="flex flex-1 flex-col gap-6">
+        {/* Toolbar */}
+        <FormsToolbar
+          search={search}
+          setSearch={setSearch}
+          filter={filter}
+          setFilter={setFilter}
+          count={filteredForms?.length || 0}
+          onCreate={() => setOpen(true)}
+          isFetching={isFetching}
+          isLoading={isLoading}
+        />
 
+        {/* Grid */}
+        <div className="min-h-0 flex-1">
           <FormGrid
             forms={filteredForms || []}
             isLoading={isLoading}
@@ -64,10 +62,7 @@ export default function FormsPage() {
         </div>
       </div>
 
-      <CreateFormModal
-        open={open}
-        onClose={() => setOpen(false)}
-      />
+      <CreateFormModal open={open} onClose={() => setOpen(false)} />
     </>
   );
 }

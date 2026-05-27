@@ -202,3 +202,95 @@ export const useGetFormSubmissions = (formId: string) => {
 
    return { submissions, error, isLoading, isFetching, isFetched, status, };
 };
+
+
+export const useUpdateForm = () => {
+
+  const {
+
+    mutateAsync: updateFormAsync,
+
+    mutate: updateForm,
+
+    error,
+
+    isPending,
+
+    isSuccess,
+
+    isError,
+
+    status,
+
+    reset,
+
+  } = trpc.form.updateForm
+    .useMutation();
+
+  return {
+
+    updateFormAsync,
+
+    updateForm,
+
+    error,
+
+    isPending,
+
+    isSuccess,
+
+    isError,
+
+    status,
+
+    reset,
+  };
+};
+
+
+export const useUpdateFormPassword =
+  () => {
+
+    const {
+
+      mutateAsync:
+        updateFormPasswordAsync,
+
+      mutate:
+        updateFormPassword,
+
+      error,
+
+      isPending,
+
+      isSuccess,
+
+      isError,
+
+      status,
+
+      reset,
+
+    } = trpc.form
+      .updateFormPassword
+      .useMutation();
+
+    return {
+
+      updateFormPasswordAsync,
+
+      updateFormPassword,
+
+      error,
+
+      isPending,
+
+      isSuccess,
+
+      isError,
+
+      status,
+
+      reset,
+    };
+  };

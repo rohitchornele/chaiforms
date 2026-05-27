@@ -3,7 +3,7 @@ import { getFormSubmissionsOutputModel } from "@repo/services/form-submission/mo
 import { formFieldService, formService, submissionService } from "../../services";
 import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormAndFieldByFormIdOutputModel, getFormAndFieldInputModel, getFormByIdInputModel, getFormByIdOutputModel, getFormSubmissionsInputModel, listFormsByUserIdOutputModel, submitFormInputModel, submitFormOutputModel, updateFieldInputModel, updateFieldOutputModel } from "./model";
+import { createFieldInputModel, createFieldOutputModel, createFormInputModel, createFormOutputModel, deleteFieldInputModel, deleteFieldOutputModel, getFieldInputModel, getFieldOutputModel, getFormAndFieldByFormIdOutputModel, getFormAndFieldInputModel, getFormByIdInputModel, getFormByIdOutputModel, getFormSubmissionsInputModel, listFormsByUserIdOutputModel, submitFormInputModel, submitFormOutputModel, updateFieldInputModel, updateFieldOutputModel, updateFormInputModel, updateFormOutputModel, updateFormPasswordInputModel, updateFormPasswordOutputModel } from "./model";
 import z from "zod";
 
 
@@ -94,11 +94,87 @@ export const formRouter = router({
                 protect: true,
             },
         })
-        .input(getFormSubmissionsInputModel )
-        .output( getFormSubmissionsOutputModel ) 
+        .input(getFormSubmissionsInputModel)
+        .output(getFormSubmissionsOutputModel)
         .query(async ({ input, ctx }) => {
-            return submissionService.getFormSubmissions({ formId: input.formId },ctx.user.id);
+            return submissionService.getFormSubmissions({ formId: input.formId }, ctx.user.id);
         }),
+
+
+    updateForm: authenticatedProcedure
+        .meta({
+            openapi: {
+                method: "PUT",
+
+                path: getPath(
+                    "/updateForm"
+                ),
+
+                tags: TAGS,
+            },
+        })
+
+        .input(
+            updateFormInputModel
+        )
+
+        .output(
+            updateFormOutputModel
+        )
+
+        .mutation(
+            async ({ input, ctx }) => {
+
+                return formService
+                    .updateForm(
+                        input,
+                        ctx.user.id
+                    );
+            }
+        ),
+
+
+        updateFormPassword: authenticatedProcedure
+
+    .meta({
+
+      openapi: {
+
+        method: "PUT",
+
+        path: getPath(
+          "/updateFormPassword"
+        ),
+
+        tags: TAGS,
+      },
+    })
+
+    .input(
+      updateFormPasswordInputModel
+    )
+
+    .output(
+      updateFormPasswordOutputModel
+    )
+
+    .mutation(
+      async ({
+        input,
+        ctx,
+      }) => {
+
+        return formService
+          .updateFormPassword(
+
+            input,
+
+            ctx.user.id
+          );
+      }
+    ),
+
+
 
 
 
