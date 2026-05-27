@@ -321,3 +321,41 @@ export const useGetPublicForm = (slug: string) => {
     refetch,
   };
 };
+
+export const useVerifyFormPassword = () => {
+  const {
+    mutateAsync: verifyPasswordAsync,
+
+    mutate: verifyPassword,
+
+    isPending,
+
+    isSuccess,
+
+    isError,
+
+    error,
+
+    status,
+
+    reset,
+  } = trpc.form.verifyFormPassword.useMutation();
+
+  return {
+    verifyPasswordAsync,
+
+    verifyPassword,
+
+    isPending,
+
+    isSuccess,
+
+    isError,
+
+    error,
+
+    status,
+
+    reset,
+  };
+};

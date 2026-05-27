@@ -25,7 +25,7 @@ export const listFormsByUserIdOutputModel = z.array(
     z.object({
         id: z.string().describe("ID of the form"),
         title: z.string().describe("Title of the form"),
-        slug:z.string(),
+        slug: z.string(),
         description: z.string().nullable().describe("Description of the form"),
         createdAt: z.date().describe("Form creation date"),
         updatedAt: z.date().nullable().describe("Form last updated date"),
@@ -41,7 +41,7 @@ export const getFormByIdOutputModel = z.object({
 
     title: z.string().describe("Title of the form"),
 
-    slug:z.string(),
+    slug: z.string(),
 
     description: z.string().nullable().optional().describe("Description of the form"),
 
@@ -321,4 +321,18 @@ export const getPublicFormBySlugOutputModel =
                         z.string(),
                 })
             ),
+    });
+
+
+export const verifyFormPasswordInputModel =
+    z.object({
+        slug: z.string(),
+        password:
+            z.string(),
+    });
+
+export const verifyFormPasswordOutputModel =
+    z.object({
+        success:
+            z.boolean(),
     });

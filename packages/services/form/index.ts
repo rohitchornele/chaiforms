@@ -15,6 +15,8 @@ import {
     UpdateFormOutputType,
     updateFormPasswordInputModel,
     UpdateFormPasswordInputType,
+    verifyFormPasswordInputModel,
+    VerifyFormPasswordInputType,
     type CreateFormInputType,
 } from "./model";
 import { formFieldsTable } from "@repo/database/models/form-field";
@@ -278,11 +280,7 @@ class FormService {
         if (validatedData.isPasswordProtected && validatedData.password) {
             const salt = randomBytes(16).toString("hex");
 
-            const hashedPassword = await this.generateHash(
-                salt,
-
-                validatedData.password,
-            );
+            const hashedPassword = await this.generateHash(salt, validatedData.password);
 
             passwordHash = `${salt}:${hashedPassword}`;
         }
@@ -344,21 +342,21 @@ class FormService {
         const form = formRows[0];
 
         if (!form) {
-            throw new Error( "Form not found",);
+            throw new Error("Form not found");
         }
 
         // Visibility check
         if (form.visibility === "PRIVATE") {
-            throw new Error("Form is private",);
+            throw new Error("Form is private");
         }
 
         if (form.status == "ARCHIVE") {
-            throw new Error("No longer accepting submissions",);
+            throw new Error("No longer accepting submissions");
         }
 
         // Published check
         if (form.status !== "PUBLISHED") {
-            throw new Error("Form is not published yet",);
+            throw new Error("Form is not published yet");
         }
 
         // Expiry check
@@ -401,6 +399,52 @@ class FormService {
             isPasswordProtected: form.isPasswordProtected,
 
             fields,
+        };
+    }
+
+    public async verifyFormPassword(payload: VerifyFormPasswordInputType) {
+        const validatedData = await verifyFormPasswordInputModel.parseAsync(payload);
+
+        const formRows = await db
+            .select({
+                slug: formsTable.slug,
+
+                passwordHash: formsTable.passwordHash,
+
+                isPasswordProtected: formsTable.isPasswordProtected,
+            })
+            .from(formsTable)
+            .where(eq(formsTable.slug, validatedData.slug))
+            .limit(1);
+
+        const form = formRows[0];
+
+        if (!form) {
+            throw new Error("Form not found");
+        }
+
+        // Not protected
+        if (!form.isPasswordProtected) {
+            return { success: true };
+        }
+
+        // Missing hash
+        if (!form.passwordHash) {
+            throw new Error("Password not configured");
+        }
+
+        const [salt, storedHash] = form.passwordHash.split(":");
+
+        const incomingHash = await this.generateHash(salt!, validatedData.password);
+
+        const isValid = incomingHash === storedHash;
+
+        if (!isValid) {
+            throw new Error("Invalid password");
+        }
+
+        return {
+            success: true,
         };
     }
 }

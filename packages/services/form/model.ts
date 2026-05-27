@@ -214,3 +214,22 @@ export const getPublicFormBySlugOutputModel =
     });
 
 export type GetPublicFormBySlugInputType = z.infer<typeof getPublicFormBySlugInputModel>;
+
+
+
+
+
+export const verifyFormPasswordInputModel =
+  z.object({
+    slug: z.string(),
+    password:
+      z.string(),
+  });
+
+export const verifyFormPasswordOutputModel =
+  z.object({
+    success:
+      z.boolean(),
+  });
+
+export type VerifyFormPasswordInputType = z.infer< typeof verifyFormPasswordInputModel>;
