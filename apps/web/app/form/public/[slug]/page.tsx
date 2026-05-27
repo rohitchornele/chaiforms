@@ -25,7 +25,6 @@ export default function PublicFormPage() {
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-
   const {
     verifyPasswordAsync,
     isPending: isVerifyingPassword,
@@ -62,6 +61,8 @@ export default function PublicFormPage() {
 
     setIsSubmitted(true);
   };
+
+  const theme = FORM_THEMES[(form?.theme ?? "sacred-tech") as FormTheme];
 
   // Success Screen
   if (isSubmitted) {
@@ -104,7 +105,16 @@ export default function PublicFormPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className="w-full rounded-2xl border border-zinc-300 px-4 py-3 outline-none focus:border-zinc-900"
+              className={`
+  w-full
+  rounded-2xl
+  border
+  px-4
+  py-3
+  outline-none
+  transition
+  ${theme.input}
+`}
             />
           </div>
 
@@ -126,7 +136,6 @@ export default function PublicFormPage() {
     );
   }
 
-  const theme = FORM_THEMES[(form?.theme ?? "sacred-tech") as FormTheme];
   // Error Screen
   if (error || !form) {
     return (
@@ -154,31 +163,77 @@ export default function PublicFormPage() {
   `}
     >
       <div className="absolute inset-0 overflow-hidden">
-
-  <div
-    className={`
+        <div
+          className={`
       absolute inset-0
       bg-gradient-to-br
       ${theme.backgroundGlow}
     `}
-  />
+        />
 
-  <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className={`
+      absolute inset-0
+      bg-gradient-to-br
+      ${theme.backgroundGlow}
+    `}
+        />
 
-</div>
-      <div className="mx-auto max-w-3xl rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-10">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+      <div
+        className={`
+    relative
+    mx-auto
+    max-w-3xl
+    rounded-[32px]
+    p-6
+    shadow-2xl
+    backdrop-blur-3xl
+    md:p-10
+    ${theme.card}
+  `}
+      >
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900">{form.title}</h1>
+          <h1
+            className={`
+    text-3xl
+    font-bold
+    tracking-tight
+    ${theme.title}
+  `}
+          >
+            {form.title}
+          </h1>
 
-          {form.description && <p className="mt-3 text-zinc-600">{form.description}</p>}
+          {form.description && (
+            <p
+              className={`
+    mt-3
+    leading-relaxed
+    ${theme.description}
+  `}
+            >
+              {form.description}
+            </p>
+          )}
         </div>
 
         {/* Fields */}
         <div className="space-y-6">
           {form.fields.map((field) => (
             <div key={field.fieldId}>
-              <label className="mb-2 block text-sm font-medium text-zinc-800">
+              <label
+                className={`
+  text-sm
+  font-medium
+  ${theme.label}
+`}
+              >
                 {field.label}
 
                 {field.isRequired && <span className="ml-1 text-red-500">*</span>}
@@ -199,7 +254,16 @@ export default function PublicFormPage() {
                   )
                 }
                 placeholder={field.placeholder || ""}
-                className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
+                className={`
+  w-full
+  rounded-2xl
+  border
+  px-4
+  py-3
+  outline-none
+  transition
+  ${theme.input}
+`}
               />
             </div>
           ))}
@@ -209,7 +273,17 @@ export default function PublicFormPage() {
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="mt-8 w-full rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-black disabled:opacity-50"
+          className={`
+  mt-8
+  w-full
+  rounded-2xl
+  px-5
+  py-3
+  text-sm
+  font-medium
+  transition
+  ${theme.button}
+`}
         >
           {isSubmitting ? "Submitting..." : "Submit Form"}
         </button>

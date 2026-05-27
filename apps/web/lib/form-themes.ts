@@ -17,8 +17,17 @@ export const FORM_THEMES = {
         description:
             "text-[#D8D4CC]/60",
 
+        label:
+            "text-[#F3EBDD]",
+
+        helperText:
+            "text-[#D8D4CC]/50",
+
         input:
-            "border-white/10 bg-black/30 text-white placeholder:text-white/30",
+            "border-white/10 bg-black/30 text-white placeholder:text-white/40",
+
+        focusRing:
+            "focus:border-[#C9732B]/50 focus:ring-4 focus:ring-[#C9732B]/20",
 
         button:
             "bg-[#C9732B] hover:bg-[#B56A3C] text-white",
@@ -44,8 +53,17 @@ export const FORM_THEMES = {
         description:
             "text-cyan-200/60",
 
+        label:
+            "text-cyan-200",
+
+        helperText:
+            "text-cyan-400/60",
+
         input:
-            "border-cyan-500/20 bg-black text-cyan-200 placeholder:text-cyan-500/40",
+            "border-cyan-500/20 bg-black text-cyan-200 placeholder:text-cyan-500/50",
+
+        focusRing:
+            "focus:border-cyan-400 focus:ring-4 focus:ring-cyan-500/20",
 
         button:
             "bg-cyan-500 hover:bg-cyan-400 text-black",
@@ -71,8 +89,17 @@ export const FORM_THEMES = {
         description:
             "text-pink-200/70",
 
+        label:
+            "text-pink-100",
+
+        helperText:
+            "text-pink-300/60",
+
         input:
-            "border-pink-400/20 bg-pink-950/40 text-pink-100 placeholder:text-pink-200/40",
+            "border-pink-400/20 bg-pink-950/40 text-pink-100 placeholder:text-pink-200/50",
+
+        focusRing:
+            "focus:border-pink-400 focus:ring-4 focus:ring-pink-500/20",
 
         button:
             "bg-pink-500 hover:bg-pink-400 text-white",
@@ -98,8 +125,17 @@ export const FORM_THEMES = {
         description:
             "text-zinc-400",
 
+        label:
+            "text-zinc-200",
+
+        helperText:
+            "text-zinc-500",
+
         input:
             "border-zinc-700 bg-black text-zinc-100 placeholder:text-zinc-500",
+
+        focusRing:
+            "focus:border-zinc-400 focus:ring-4 focus:ring-zinc-500/10",
 
         button:
             "bg-white hover:bg-zinc-200 text-black",
@@ -110,4 +146,5 @@ export const FORM_THEMES = {
 
 } as const;
 
-export type FormTheme =  keyof typeof FORM_THEMES;
+export type FormTheme =
+    keyof typeof FORM_THEMES;
