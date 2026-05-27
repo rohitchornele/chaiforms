@@ -162,6 +162,8 @@ export const getFormAndFieldByFormIdOutputModel = z
     title: z.string().describe("Title of the form"),
     description: z.string().nullable().optional().describe("Description of the form"),
     isPasswordProtected: z.boolean(),
+    status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]),
+    slug: z.string(),
     createdAt: z.date().describe("Form creation date"),
     updatedAt: z.date().nullable().optional().optional().describe("Form last updated date"),
     fields: z.array(getFormAndFieldOutputModel),

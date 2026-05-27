@@ -18,11 +18,14 @@ export type Form = {
 
   description?: string;
 
+  visibility? : string;
+
   createdAt: string | Date;
 
   status?: FormStatus;
 
   responseCount?: number;
+
 };
 
 export const FORM_THEMES = [

@@ -159,6 +159,8 @@ class FormService {
         description: formsTable.description,
         isPasswordProtected: formsTable.isPasswordProtected,
         theme: formsTable.theme,
+        status: formsTable.status,
+        slug: formsTable.slug,
         createdAt: formsTable.createdAt,
         updatedAt: formsTable.updatedAt,
         field: {
@@ -179,13 +181,13 @@ class FormService {
 
     if (rows.length === 0) return null;
 
-    const { formId, title, description, theme, isPasswordProtected, createdAt, updatedAt } = rows[0]!;
+    const { formId, title, description, theme, status, slug, isPasswordProtected, createdAt, updatedAt } = rows[0]!;
 
     const fields = rows
       .filter((r) => r.field?.fieldId !== null)
       .map((r) => r.field as NonNullable<typeof r.field>);
 
-    return { formId, title, description, theme, isPasswordProtected, createdAt, updatedAt, fields };
+    return { formId, title, description, theme, status, slug,  isPasswordProtected, createdAt, updatedAt, fields };
   }
 
   public async updateForm(

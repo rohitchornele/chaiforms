@@ -1,39 +1,15 @@
-// "use client"
 
-// import * as React from "react"
-// import { AppSidebar } from "~/components/app-sidebar"
-// import { SiteHeader } from "~/components/site-header"
-// import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar"
 
-// export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-//   return (
-//     <SidebarProvider
-//       style={
-//         {
-//           "--sidebar-width": "calc(var(--spacing) * 72)",
-//           "--header-height": "calc(var(--spacing) * 12)",
-//         } as React.CSSProperties
-//       }
-//     >
-//       <AppSidebar variant="inset" />
-//       <SidebarInset>
-//         <SiteHeader />
-//         {children}
-//       </SidebarInset>
-//     </SidebarProvider>
-//   )
-// }
+"use client";
 
-"use client"
+import type { ReactNode } from "react";
 
-import type { ReactNode } from "react"
-
-import { DashboardHeader } from "~/components/layout/dashboard-header"
-import { DashboardSidebar } from "~/components/layout/dashboard-sidebar"
-import { DashboardLayoutProvider } from "~/components/layout/dashboard-layout-context"
+import { DashboardHeader } from "~/components/layout/dashboard-header";
+import { DashboardSidebar } from "~/components/layout/dashboard-sidebar";
+import { DashboardLayoutProvider } from "~/components/layout/dashboard-layout-context";
 
 interface DashboardLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function DashboardLayout({
@@ -41,19 +17,36 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   return (
     <DashboardLayoutProvider>
-      <div className="flex h-screen overflow-hidden bg-background">
+      <div className="relative flex h-screen overflow-hidden bg-[#050505] text-white">
+
+        {/* Background */}
+        <div className="absolute inset-0 overflow-hidden">
+
+          {/* Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(201,115,43,0.15),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(31,74,59,0.15),transparent_30%)]" />
+
+          {/* Grid */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:60px_60px]" />
+
+        </div>
+
+        {/* Sidebar */}
         <DashboardSidebar />
 
-        <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Main */}
+        <div className="relative z-10 flex flex-1 flex-col overflow-hidden">
+
           <DashboardHeader />
 
           <main className="flex-1 overflow-y-auto">
-            <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:px-6 md:py-4">
+            <div className="mx-auto flex w-full max-w-[1800px] flex-col gap-6 p-4 md:p-6">
               {children}
             </div>
           </main>
+
         </div>
+
       </div>
     </DashboardLayoutProvider>
-  )
+  );
 }
