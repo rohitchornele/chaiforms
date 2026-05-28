@@ -22,7 +22,7 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
 // if (env.NODE_ENV !== "production") {
 app.use(
   cors({
-    origin: "https://chaiforms-web.vercel.app",
+    origin: ["https://chaiforms-web.vercel.app"],
     credentials: true,
   }),
 );
