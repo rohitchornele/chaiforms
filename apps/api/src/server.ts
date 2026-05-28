@@ -19,6 +19,9 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
+
+app.set("trust proxy", 1);
+
 // if (env.NODE_ENV !== "production") {
 app.use(
   cors({
@@ -33,6 +36,7 @@ app.use(cookieParser())
 
 app.use(express.json());
 
+
 app.get("/", (req, res) => {
   return res.json({ message: "ChaiForms is up and running..." });
 });
@@ -40,6 +44,8 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   return res.json({ message: "ChaiForms server is healthy", healthy: true });
 });
+
+
 
 logger.debug(`openapi.json: ${env.BASE_URL}/openapi.json`);
 app.get("/openapi.json", (req, res) => {
