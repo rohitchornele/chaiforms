@@ -41,11 +41,27 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (error) {
-      router.push("/login");
+      router.replace("/login");
     }
   }, [error, router]);
 
-  const { dashboard, isLoading, isFetching, } = useDashboardOverview();
+  const { dashboard, isLoading, isFetching } = useDashboardOverview();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-[#050505]">
+        <div className="flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-5 backdrop-blur-3xl">
+          <Loader2 className="h-5 w-5 animate-spin text-white/60" />
+
+          <p className="text-sm font-medium text-white/70">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (isLoading || isFetching) {
     return (
