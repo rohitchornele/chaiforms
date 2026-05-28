@@ -7,27 +7,27 @@ const ONE_DAY = 24 * ONE_HOUR;
 const ONE_MONTH = 30 * ONE_DAY;
 const ONE_YEAR = 12 * ONE_MONTH;
 
-// const defaultCookieOption: CookieOptions = {
-//     path: "/",
-//     httpOnly: true,
-//     secure: true, // false in dev
-//     sameSite: "none",  //lax in dev
-//     maxAge: ONE_YEAR
-// }
-
 const defaultCookieOption: CookieOptions = {
-  path: "/",
+    path: "/",
+    httpOnly: true,
+    secure: true, // false in dev
+    sameSite: "none",  //lax in dev
+    maxAge: ONE_YEAR
+}
 
-  httpOnly: true,
+// const defaultCookieOption: CookieOptions = {
+//   path: "/",
 
-  secure: process.env.NODE_ENV === "production",
+//   httpOnly: true,
 
-  sameSite: "none",
+//   secure: process.env.NODE_ENV === "production",
 
-  domain: ".vercel.app",
+//   sameSite: "none",
 
-  maxAge: ONE_YEAR,
-};
+//   domain: ".vercel.app",
+
+//   maxAge: ONE_YEAR,
+// };
 
 export function createCookieFactory(res: Response) {
   return function createCookie(

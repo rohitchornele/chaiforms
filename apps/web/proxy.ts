@@ -89,7 +89,7 @@ export const config = {
     /*
      * Protected Routes
      */
-    "/dashboard/:path*",
+    // "/dashboard/:path*",
 
     /*
      * Auth Routes
