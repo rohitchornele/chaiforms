@@ -10,45 +10,32 @@ const ONE_YEAR = 12 * ONE_MONTH;
 const defaultCookieOption: CookieOptions = {
     path: "/",
     httpOnly: true,
-    secure: true, // false in dev
-    sameSite: "none",  //lax in dev
+    secure: false, // false in dev
+    sameSite: "lax",  //lax in dev
     maxAge: ONE_YEAR
 }
 
-// const defaultCookieOption: CookieOptions = {
-//   path: "/",
-
-//   httpOnly: true,
-
-//   secure: process.env.NODE_ENV === "production",
-
-//   sameSite: "none",
-
-//   domain: ".vercel.app",
-
-//   maxAge: ONE_YEAR,
-// };
 
 export function createCookieFactory(res: Response) {
-  return function createCookie(
-    name: string,
-    value: string,
-    opts: CookieOptions = defaultCookieOption,
-  ) {
-    res.cookie(name, value, opts);
-  };
+    return function createCookie(
+        name: string,
+        value: string,
+        opts: CookieOptions = defaultCookieOption,
+    ) {
+        res.cookie(name, value, opts);
+    };
 }
 
 export function getCookieFactory(req: Request) {
-  return function getCookie(name: string) {
-    return req.cookies?.[name];
-  };
+    return function getCookie(name: string) {
+        return req.cookies?.[name];
+    };
 }
 
 export function clearCookieFactory(res: Response) {
-  return function clearCookie(name: string) {
-    res.clearCookie(name);
-  };
+    return function clearCookie(name: string) {
+        res.clearCookie(name, defaultCookieOption,);
+    };
 }
 
 // Authentication cookie functions
@@ -56,13 +43,13 @@ export function clearCookieFactory(res: Response) {
 const AUTHENTICATION_COOKIE_NAME = "authentication-token";
 
 export function setAuthenticationCookie(ctx: TRPCContext, accessToken: string) {
-  ctx.createCookie(AUTHENTICATION_COOKIE_NAME, accessToken);
+    ctx.createCookie(AUTHENTICATION_COOKIE_NAME, accessToken);
 }
 
 export function getAuthenticationCookie(ctx: TRPCContext) {
-  return ctx.getCookie(AUTHENTICATION_COOKIE_NAME);
+    return ctx.getCookie(AUTHENTICATION_COOKIE_NAME);
 }
 
 export function clearAuthenticationCookie(ctx: TRPCContext) {
-  ctx.clearCookie(AUTHENTICATION_COOKIE_NAME);
+    ctx.clearCookie(AUTHENTICATION_COOKIE_NAME);
 }
