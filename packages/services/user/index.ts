@@ -123,6 +123,13 @@ class UserService {
     return { id }
   }
 
+  public async logoutUser() {
+
+  return {
+    success: true,
+  };
+}
+
 
 }
 

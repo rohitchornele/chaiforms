@@ -88,3 +88,57 @@ export const useUser = () => {
       status,
    }
 }
+
+
+
+export const useLogoutUser =
+   () => {
+
+      const utils =
+         trpc.useUtils();
+
+      const {
+         mutateAsync:
+         logoutUserAsync,
+
+         mutate:
+         logoutUser,
+
+         status,
+
+         error,
+
+         isPending,
+
+         isSuccess,
+
+         isError,
+      } =
+         trpc.auth.logoutUser.useMutation({
+            onSuccess:
+               async () => {
+
+                  /**
+                   * clear cache
+                   */
+
+                  await utils.invalidate();
+               },
+         });
+
+      return {
+         logoutUserAsync,
+
+         logoutUser,
+
+         status,
+
+         error,
+
+         isPending,
+
+         isSuccess,
+
+         isError,
+      };
+   };
