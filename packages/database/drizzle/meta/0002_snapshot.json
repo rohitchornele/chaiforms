@@ -1,6 +1,6 @@
 {
-  "id": "0d7c3aed-fe33-4cce-a52f-21bb4dea6fb9",
-  "prevId": "b2bab00c-5203-434c-b12c-46fc21a5b5c9",
+  "id": "7a7fabaa-d6fa-4c09-805b-3a29e4a3ce22",
+  "prevId": "5ea07e7a-0563-4e9a-8a13-73991c3ff501",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -111,7 +111,7 @@
           "name": "slug",
           "type": "varchar(150)",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "description": {
           "name": "description",
@@ -126,13 +126,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'UNLISTED'"
-        },
-        "allow_embed": {
-          "name": "allow_embed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
         },
         "is_password_protected": {
           "name": "is_password_protected",
@@ -173,6 +166,20 @@
           "primaryKey": false,
           "notNull": false
         },
+        "response_count": {
+          "name": "response_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "theme": {
+          "name": "theme",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'sacred-tech'"
+        },
         "created_by": {
           "name": "created_by",
           "type": "uuid",
@@ -211,7 +218,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "forms_slug_unique": {
+          "name": "forms_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

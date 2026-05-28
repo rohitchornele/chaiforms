@@ -11,14 +11,15 @@
     "@repo/typescript-config": "workspace:*",
     "@types/pg": "^8.16.0",
     "dotenv-cli": "^11.0.0",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "^0.45.2",
     "pg": "^8.16.3",
+    "postgres": "^3.4.9",
     "zod": "^4.3.5"
   }
 }

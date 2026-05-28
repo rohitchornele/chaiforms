@@ -237,10 +237,17 @@ export class DashboardService {
             recentSubmissions,
 
             submissionChart:
-                submissionChart.rows as {
-                    date: string;
-                    submissions: number;
-                }[],
+                submissionChart.map(
+                    (item: any) => ({
+
+                        date:
+                            String(item.date),
+
+                        submissions:
+                            Number(item.submissions),
+
+                    })
+                ),
         };
     }
 }
