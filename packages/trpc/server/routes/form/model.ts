@@ -16,7 +16,7 @@ export const createFormInputModel = z.object({
   passwordHash: z.string().optional(),
   theme: z.enum(
     FORM_THEME_VALUES
-  ),
+  ).default("sacred-tech").optional(),
   publishedAt: z.coerce.date().optional(),
   expiryDate: z.coerce.date().optional(),
   responseLimit: z.number().optional(),
@@ -39,7 +39,7 @@ export const listFormsByUserIdOutputModel = z.array(
     description: z.string().nullable().describe("Description of the form"),
     theme: z.enum(
       FORM_THEME_VALUES
-    ),
+    ).default("sacred-tech").optional(),
     responseCount: z.number(),
     createdAt: z.date().describe("Form creation date"),
     updatedAt: z.date().nullable().describe("Form last updated date"),
@@ -67,7 +67,7 @@ export const getFormByIdOutputModel = z.object({
 
   theme: z.enum(
     FORM_THEME_VALUES
-  ),
+  ).default("sacred-tech").optional(),
 
   publishedAt: z.date().nullable().optional().describe("Form publish date"),
 
@@ -220,7 +220,7 @@ export const updateFormInputModel = z
 
     theme: z.enum(
       FORM_THEME_VALUES
-    ),
+    ).default("sacred-tech").optional(),
 
     responseLimit: z.number().int().positive().nullable().optional(),
 
@@ -252,7 +252,7 @@ export const updateFormOutputModel = z.object({
 
   responseLimit: z.number().nullable(),
 
-  theme: z.enum(FORM_THEME_VALUES),
+  theme: z.enum(FORM_THEME_VALUES).default("sacred-tech").optional(),
 
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVE"]),
 
@@ -299,7 +299,7 @@ export const getPublicFormBySlugOutputModel = z.object({
 
   theme: z.enum(
     FORM_THEME_VALUES
-  ),
+  ).default("sacred-tech").optional(),
 
   isPasswordProtected: z.boolean(),
 
@@ -357,7 +357,7 @@ export const listPublicFormsOutput = z.array(
 
     theme: z.enum(
       FORM_THEME_VALUES
-    ),
+    ).default("sacred-tech").optional(),
 
     responseCount: z.number(),
 
