@@ -14,19 +14,78 @@ export const router = tRPCContext.router;
 
 export const publicProcedure = tRPCContext.procedure;
 
-export const authenticatedProcedure = tRPCContext.procedure.use(async (options) => {
-  const { ctx } = options;
+// export const authenticatedProcedure = tRPCContext.procedure.use(async (options) => {
+//   const { ctx } = options;
 
-  const userToken = getAuthenticationCookie(ctx);
+//   const userToken = getAuthenticationCookie(ctx);
 
-  if(!userToken) throw new Error('User is not logged in')
+//   if(!userToken) throw new Error('User is not logged in')
 
-  const { id } = await userService.verifyAndDecodeUserToken(userToken)
-  
-  return options.next(
-    {
-      ctx : {
-        ...ctx, user : { id }
+//   const { id } = await userService.verifyAndDecodeUserToken(userToken)
+
+//   return options.next(
+//     {
+//       ctx : {
+//         ...ctx, user : { id }
+//       }
+//     })
+// })
+
+
+export const authenticatedProcedure =
+  tRPCContext.procedure.use(
+    async (options) => {
+
+      const { ctx } =
+        options;
+
+      try {
+
+        const userToken =
+          getAuthenticationCookie(
+            ctx,
+          );
+
+        if (!userToken) {
+
+          throw new TRPCError({
+            code:
+              "UNAUTHORIZED",
+
+            message:
+              "User is not logged in",
+          });
+        }
+
+        const { id } =
+          await userService.verifyAndDecodeUserToken(
+            userToken,
+          );
+
+        return options.next({
+          ctx: {
+            ...ctx,
+
+            user: {
+              id,
+            },
+          },
+        });
+
+      } catch (error) {
+
+        console.error(
+          "AUTH ERROR:",
+          error,
+        );
+
+        throw new TRPCError({
+          code:
+            "UNAUTHORIZED",
+
+          message:
+            "Invalid session",
+        });
       }
-    })
-})
+    },
+  );
