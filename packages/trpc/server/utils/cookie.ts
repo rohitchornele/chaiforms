@@ -13,8 +13,8 @@ const ONE_YEAR = 12 * ONE_MONTH;
 const defaultCookieOption: CookieOptions = {
     path: "/",
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: true, // false in dev
+    sameSite: "none",  //lax in dev
     maxAge: ONE_YEAR
 }
 
