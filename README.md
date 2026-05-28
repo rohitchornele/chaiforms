@@ -1,135 +1,266 @@
-# Turborepo starter
+# ChaiForms
 
-This Turborepo starter is maintained by the Turborepo core team.
+A futuristic full-stack form builder platform built with modern web technologies.
+Create immersive forms, collect submissions, manage responses, and build cinematic form experiences with a beautiful sacred-tech inspired UI.
 
-## Using this example
+---
 
-Run the following command:
+# Features
 
-```sh
-npx create-turbo@latest
+* Futuristic cinematic UI
+* Full authentication system
+* Protected dashboard
+* Create & manage forms
+* Dynamic form fields
+* Public form sharing
+* Form submissions
+* Submission analytics
+* CSV export
+* Dashboard metrics
+* Multiple form themes
+* Responsive design
+* tRPC API architecture
+* PostgreSQL + Drizzle ORM
+* Monorepo architecture
+
+---
+
+# Tech Stack
+
+## Frontend
+
+* Next.js 16
+* React
+* TypeScript
+* Tailwind CSS
+* Framer Motion
+* React Hook Form
+* Recharts
+* Lucide Icons
+* tRPC Client
+
+## Backend
+
+* Node.js
+* Express
+* tRPC
+* PostgreSQL
+* Drizzle ORM
+* JWT Authentication
+* Cookie-based Auth
+
+## Database
+
+* Supabase PostgreSQL
+
+## Monorepo
+
+* Turborepo
+* PNPM Workspaces
+
+---
+
+# Project Structure
+
+```bash
+apps/
+  web/          # Next.js frontend
+  api/          # Express + tRPC backend
+
+packages/
+  database/     # Drizzle ORM + schema
+  trpc/         # Shared tRPC setup
+  services/     # Business logic
+  logger/
+  typescript-config/
+  eslint-config/
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+# Screenshots
 
-### Apps and Packages
+## Login Page
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+* Futuristic sacred-tech login experience
+* Cinematic glassmorphism UI
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## Dashboard
 
-### Utilities
+* Analytics overview
+* Form management
+* Activity feed
+* Submission charts
 
-This Turborepo has some additional tools already setup for you:
+## Form Builder
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+* Dynamic fields
+* Theme selection
+* Visibility controls
 
-### Build
+## Submissions
 
-To build all apps and packages, run the following command:
+* Submission tracking
+* Detailed response viewer
+* CSV export support
 
-```
-cd my-turborepo
+---
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
+# Demo Credentials
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
-```
+Use these credentials to explore the platform:
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+```bash
+Email: rohit@gmail.com
+Password: Rohit12345
 ```
 
-### Develop
+---
 
-To develop all apps and packages, run the following command:
+# Getting Started
 
-```
-cd my-turborepo
+## 1. Clone Repository
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+git clone https://github.com/yourusername/chaiforms.git
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+## 2. Install Dependencies
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+pnpm install
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## 3. Setup Environment Variables
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+Create `.env` files.
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+### apps/api/.env
 
-```
-cd my-turborepo
+```env
+PORT=8080
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+DATABASE_URL=your_supabase_database_url
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+JWT_SECRET=your_jwt_secret
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### apps/web/.env
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
+## 4. Run Database Migrations
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+```bash
+pnpm drizzle-kit push
+```
+
+---
+
+## 5. Start Development Server
+
+```bash
+pnpm dev
+```
+
+---
+
+# Production Deployment
+
+## Frontend
+
+Deploy frontend on:
+
+* Vercel
+
+## Backend
+
+Deploy backend on:
+
+* Render
+
+## Database
+
+Use:
+
+* Supabase PostgreSQL
+
+---
+
+# Authentication
+
+ChaiForms uses:
+
+* JWT authentication
+* HTTP-only cookies
+* Protected tRPC procedures
+* Client-side session validation
+
+---
+
+# Available Scripts
+
+```bash
+pnpm dev
+pnpm build
+pnpm lint
+pnpm format
+pnpm drizzle-kit push
+pnpm drizzle-kit studio
+```
+
+---
+
+# Form Themes
+
+Current supported themes:
+
+* sacred-tech
+* cyberpunk
+* anime
+* startup-os
+
+---
+
+# Roadmap
+
+* AI form generation
+* Form analytics AI
+* WebSocket live submissions
+* Team collaboration
+* Payment integration
+* Public templates marketplace
+* Email workflows
+* Custom domains
+
+---
+
+# Author
+
+Built by Rohit Chornele
+
+Portfolio:
+
+https://rohitchornele.online/
+
+---
+
+# License
+
+MIT License
+
+---
+
+# ChaiForms Vision
+
+ChaiForms is not just another form builder.
+
+It is designed to feel like a futuristic creator operating system inspired by cinematic interfaces, sacred geometry aesthetics, and immersive digital experiences.
