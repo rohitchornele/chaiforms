@@ -43,8 +43,13 @@ export const authenticatedProcedure =
 
         const userToken =
           getAuthenticationCookie(
-            ctx,
+            ctx
           );
+
+        console.log(
+          "COOKIE TOKEN:",
+          userToken
+        );
 
         if (!userToken) {
 
@@ -59,8 +64,13 @@ export const authenticatedProcedure =
 
         const { id } =
           await userService.verifyAndDecodeUserToken(
-            userToken,
+            userToken
           );
+
+        console.log(
+          "AUTH USER ID:",
+          id
+        );
 
         return options.next({
           ctx: {
@@ -76,7 +86,7 @@ export const authenticatedProcedure =
 
         console.error(
           "AUTH ERROR:",
-          error,
+          error
         );
 
         throw new TRPCError({
