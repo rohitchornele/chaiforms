@@ -7,7 +7,7 @@ export function proxy(
 ) {
 
   const token =
-    request.cookies.get(
+     request.cookies.get(
       "authentication-token"
     )?.value;
 
@@ -57,9 +57,7 @@ export function proxy(
    * Prevent Logged In Users
    * From Visiting Auth Pages
    */
-  if (
-    isAuthRoute &&
-    token
+  if (isAuthRoute && token
   ) {
 
     return NextResponse.redirect(
@@ -87,15 +85,17 @@ export const config = {
   matcher: [
 
     /*
-     * Protected Routes
-     */
-    "/dashboard/:path*",
-
-    /*
-     * Auth Routes
-     */
+    * Auth Routes
+    */
     "/login",
 
     "/signup",
+
+    /*
+     * Protected Routes
+     */
+    // "/dashboard/:path*",
+
+
   ],
 };
