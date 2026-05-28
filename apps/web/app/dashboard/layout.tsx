@@ -1,37 +1,23 @@
+
+
+"use client";
+
 import type { ReactNode } from "react";
 
-import { cookies } from "next/headers";
-
-import { redirect } from "next/navigation";
-
 import { DashboardHeader } from "~/components/layout/dashboard-header";
-
 import { DashboardSidebar } from "~/components/layout/dashboard-sidebar";
-
 import { DashboardLayoutProvider } from "~/components/layout/dashboard-layout-context";
+
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
-
-  const token =
-    (await cookies()).get(
-      "authentication-token"
-    )?.value;
-
-  if (!token) {
-
-    redirect("/login");
-  }
-
   return (
-
     <DashboardLayoutProvider>
-
       <div className="relative flex h-screen overflow-hidden bg-[#050505] text-white">
 
         {/* Background */}
@@ -54,19 +40,14 @@ export default async function DashboardLayout({
           <DashboardHeader />
 
           <main className="flex-1 overflow-y-auto">
-
             <div className="mx-auto flex w-full max-w-[1800px] flex-col gap-6 p-4 md:p-6">
-
               {children}
-
             </div>
-
           </main>
 
         </div>
 
       </div>
-
     </DashboardLayoutProvider>
   );
 }
