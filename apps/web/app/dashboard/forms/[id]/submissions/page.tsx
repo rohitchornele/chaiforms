@@ -6,9 +6,22 @@ import { useParams } from "next/navigation";
 
 import Papa from "papaparse";
 
-import { Loader2, AlertCircle, Inbox, ArrowLeft, Download } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Inbox,
+  ArrowLeft,
+  Download,
+  Sparkles,
+  Activity,
+} from "lucide-react";
 
-import { useGetFormAndField, useGetFormSubmissions } from "~/hooks/api/form";
+import { motion } from "framer-motion";
+
+import {
+  useGetFormAndField,
+  useGetFormSubmissions,
+} from "~/hooks/api/form";
 
 export default function FormSubmissionsPage() {
   const params = useParams();
@@ -29,17 +42,25 @@ export default function FormSubmissionsPage() {
     error: formError,
   } = useGetFormAndField(formId);
 
-  const isLoading = submissionsLoading || submissionsFetching || formLoading || formFetching;
+  const isLoading =
+    submissionsLoading ||
+    submissionsFetching ||
+    formLoading ||
+    formFetching;
 
-  const error = submissionsError || formError;
+  const error =
+    submissionsError ||
+    formError;
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center">
-        <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-6 py-4 shadow-sm">
-          <Loader2 className="h-5 w-5 animate-spin text-zinc-700" />
+      <div className="flex min-h-screen items-center justify-center bg-[#050505]">
+        <div className="flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-5 backdrop-blur-3xl">
+          <Loader2 className="h-5 w-5 animate-spin text-white/60" />
 
-          <p className="text-sm font-medium text-zinc-700">Loading submissions...</p>
+          <p className="text-sm font-medium text-white/70">
+            Loading submissions...
+          </p>
         </div>
       </div>
     );
@@ -47,15 +68,19 @@ export default function FormSubmissionsPage() {
 
   if (error) {
     return (
-      <div className="flex min-h-[80vh] items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-3xl border border-red-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3 text-red-500">
+      <div className="flex min-h-screen items-center justify-center bg-[#050505] p-4">
+        <div className="w-full max-w-md rounded-[32px] border border-red-500/20 bg-red-500/5 p-6 backdrop-blur-3xl">
+          <div className="flex items-center gap-3 text-red-300">
             <AlertCircle className="h-6 w-6" />
 
-            <h2 className="text-lg font-semibold">Failed to load submissions</h2>
+            <h2 className="text-lg font-semibold">
+              Failed to load submissions
+            </h2>
           </div>
 
-          <p className="mt-3 text-sm text-zinc-600">{error.message}</p>
+          <p className="mt-4 text-sm text-red-200/70">
+            {error.message}
+          </p>
         </div>
       </div>
     );
@@ -66,30 +91,6 @@ export default function FormSubmissionsPage() {
   }
 
   const fields = form.fields || [];
-
-  // No Fields
-  if (fields.length === 0) {
-    return (
-      <div className="flex min-h-[80vh] items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-3xl border border-zinc-200 bg-white p-10 text-center shadow-sm">
-          <Inbox className="mx-auto h-16 w-16 text-zinc-300" />
-
-          <h2 className="mt-5 text-2xl font-semibold text-zinc-900">No fields added yet</h2>
-
-          <p className="mt-3 text-sm leading-relaxed text-zinc-500">
-            This form does not contain any fields yet. Add fields before collecting submissions.
-          </p>
-
-          <Link
-            href={`/dashboard/forms/${formId}`}
-            className="mt-6 inline-flex items-center justify-center rounded-2xl bg-zinc-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-black"
-          >
-            Edit Form
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   const handleExportCSV = () => {
     if (!submissions || submissions.length === 0) {
@@ -102,7 +103,9 @@ export default function FormSubmissionsPage() {
 
         status: submission.status,
 
-        submittedAt: new Date(submission.createdAt).toLocaleString(),
+        submittedAt: new Date(
+          submission.createdAt
+        ).toLocaleString(),
       };
 
       const responses =
@@ -111,7 +114,8 @@ export default function FormSubmissionsPage() {
           : submission.responses;
 
       fields.forEach((field) => {
-        row[field.label] = responses?.[field.fieldId] || "";
+        row[field.label] =
+          responses?.[field.fieldId] || "";
       });
 
       return row;
@@ -123,16 +127,19 @@ export default function FormSubmissionsPage() {
       type: "text/csv;charset=utf-8;",
     });
 
-    const url = URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
+    const link =
+      document.createElement("a");
 
     link.href = url;
 
     link.setAttribute(
       "download",
-
-      `${form.title.replaceAll(" ", "-").toLowerCase()}-submissions.csv`,
+      `${form.title
+        .replaceAll(" ", "-")
+        .toLowerCase()}-submissions.csv`
     );
 
     document.body.appendChild(link);
@@ -143,128 +150,209 @@ export default function FormSubmissionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-100 p-4 md:p-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <Link
-              href="/dashboard/forms"
-              className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to forms
-            </Link>
+    <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
+      {/* Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute left-[-10%] top-[-10%] h-[500px] w-[500px] rounded-full bg-[#C9732B]/20 blur-[140px]" />
 
-            <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
-              {form.title} Submissions
-            </h1>
+        <div className="absolute bottom-[-20%] right-[-10%] h-[500px] w-[500px] rounded-full bg-[#1F4A3B]/20 blur-[140px]" />
 
-            <p className="mt-2 text-sm text-zinc-500">View and manage all submitted responses</p>
-          </div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:70px_70px]" />
+      </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleExportCSV}
-              disabled={!submissions || submissions.length === 0}
-              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
-            </button>
+      <div className="relative z-10 mx-auto max-w-[1800px] p-4 md:p-8">
+        {/* HERO */}
+        <section className="relative overflow-hidden rounded-[40px] border border-white/10 bg-white/[0.03] p-6 shadow-[0_0_80px_rgba(0,0,0,0.45)] backdrop-blur-3xl md:p-10">
+          {/* Glow */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(201,115,43,0.15),transparent_30%)]" />
 
-            <div className="rounded-2xl border border-zinc-200 bg-white px-5 py-3 shadow-sm">
-              <p className="text-sm text-zinc-500">Total Submissions</p>
+          <div className="relative z-10 flex flex-col gap-8 xl:flex-row xl:items-center xl:justify-between">
+            {/* LEFT */}
+            <div>
+              <Link
+                href="/dashboard/forms"
+                className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-white/50 transition hover:text-white"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to forms
+              </Link>
 
-              <h2 className="text-2xl font-bold text-zinc-900">{submissions?.length || 0}</h2>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#C9732B]/20 bg-[#C9732B]/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-[#F3EBDD]">
+                <Sparkles className="h-3.5 w-3.5" />
+                Submission Control Center
+              </div>
+
+              <h1 className="mt-6 text-5xl font-black tracking-tight text-white md:text-6xl">
+                {form.title}
+              </h1>
+
+              <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+                Analyze audience engagement, review responses,
+                and export submissions from your cinematic form experience.
+              </p>
+            </div>
+
+            {/* RIGHT */}
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <button
+                onClick={handleExportCSV}
+                disabled={!submissions || submissions.length === 0}
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-white/10
+                  bg-white/[0.03]
+                  px-6
+                  py-4
+                  text-sm
+                  font-medium
+                  text-white/70
+                  transition-all
+                  hover:bg-white/[0.06]
+                  hover:text-white
+                  disabled:cursor-not-allowed
+                  disabled:opacity-40
+                "
+              >
+                <Download className="h-4 w-4" />
+                Export CSV
+              </button>
+
+              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-2xl">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-2xl bg-[#C9732B]/10 p-3 text-[#F3EBDD]">
+                    <Activity className="h-5 w-5" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-white/45">
+                      Total Submissions
+                    </p>
+
+                    <h2 className="text-3xl font-black text-white">
+                      {submissions?.length || 0}
+                    </h2>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Empty State */}
+        {/* EMPTY */}
         {!submissions || submissions.length === 0 ? (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-300 bg-white p-10 text-center">
-            <Inbox className="h-16 w-16 text-zinc-300" />
+          <div className="mt-8 flex min-h-[60vh] flex-col items-center justify-center rounded-[40px] border border-dashed border-white/10 bg-white/[0.03] p-10 text-center backdrop-blur-3xl">
+            <Inbox className="h-16 w-16 text-white/20" />
 
-            <h2 className="mt-5 text-2xl font-semibold text-zinc-900">No submissions yet</h2>
+            <h2 className="mt-6 text-3xl font-bold text-white">
+              No submissions yet
+            </h2>
 
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-zinc-500">
-              Once users start submitting this form, all responses will appear here.
+            <p className="mt-4 max-w-md text-sm leading-relaxed text-white/45">
+              Once users begin interacting with your form,
+              all audience responses will appear here.
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 20,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            className="mt-8 overflow-hidden rounded-[40px] border border-white/10 bg-white/[0.03] shadow-[0_0_60px_rgba(0,0,0,0.35)] backdrop-blur-3xl"
+          >
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-zinc-200">
-                <thead className="bg-zinc-50">
+              <table className="min-w-full">
+                <thead className="border-b border-white/10 bg-white/[0.02]">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    <th className="px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
                       #
                     </th>
 
                     {fields.map((field) => (
                       <th
                         key={field.fieldId}
-                        className="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                        className="whitespace-nowrap px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.2em] text-white/40"
                       >
                         {field.label}
                       </th>
                     ))}
 
-                    <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                    <th className="px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
                       Status
                     </th>
 
-                    <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-                      Submitted At
+                    <th className="px-6 py-5 text-left text-xs font-semibold uppercase tracking-[0.2em] text-white/40">
+                      Submitted
                     </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-zinc-100 bg-white">
-                  {(submissions || []).map((submission, index) => (
-                    <tr
-                      key={submission.submissionId}
-                      onClick={() => {
-                        window.location.href = `/dashboard/forms/${formId}/submissions/${submission.submissionId}`;
-                      }}
-                      className="cursor-pointer transition hover:bg-zinc-50"
-                    >
-                      <td className="whitespace-nowrap px-6 py-5 text-sm font-medium text-zinc-700">
-                        {index + 1}
-                      </td>
+                <tbody>
+                  {(submissions || []).map(
+                    (submission, index) => {
+                      const responses =
+                        typeof submission.responses === "string"
+                          ? JSON.parse(submission.responses)
+                          : submission.responses;
 
-                      {fields.map((field) => {
-                        const responses =
-                          typeof submission.responses === "string"
-                            ? JSON.parse(submission.responses)
-                            : submission.responses;
-
-                        const value = responses?.[field.fieldId];
-
-                        return (
-                          <td
-                            key={field.fieldId}
-                            className="whitespace-nowrap px-6 py-5 text-sm text-zinc-700"
-                          >
-                            <div className="max-w-[250px] truncate">{value || "-"}</div>
+                      return (
+                        <tr
+                          key={submission.submissionId}
+                          onClick={() => {
+                            window.location.href = `/dashboard/forms/${formId}/submissions/${submission.submissionId}`;
+                          }}
+                          className="cursor-pointer border-b border-white/5 transition-all hover:bg-white/[0.03]"
+                        >
+                          <td className="whitespace-nowrap px-6 py-6 text-sm font-medium text-white/70">
+                            {index + 1}
                           </td>
-                        );
-                      })}
 
-                      <td className="whitespace-nowrap px-6 py-5">
-                        <StatusBadge status={submission.status} />
-                      </td>
+                          {fields.map((field) => {
+                            const value =
+                              responses?.[
+                                field.fieldId
+                              ];
 
-                      <td className="whitespace-nowrap px-6 py-5 text-sm text-zinc-600">
-                        {new Date(submission.createdAt).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
+                            return (
+                              <td
+                                key={field.fieldId}
+                                className="whitespace-nowrap px-6 py-6 text-sm text-white/70"
+                              >
+                                <div className="max-w-[260px] truncate">
+                                  {value || "-"}
+                                </div>
+                              </td>
+                            );
+                          })}
+
+                          <td className="px-6 py-6">
+                            <StatusBadge
+                              status={submission.status}
+                            />
+                          </td>
+
+                          <td className="whitespace-nowrap px-6 py-6 text-sm text-white/40">
+                            {new Date(
+                              submission.createdAt
+                            ).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    }
+                  )}
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
     </div>
@@ -272,18 +360,28 @@ export default function FormSubmissionsPage() {
 }
 
 type StatusProps = {
-  status: "PENDING" | "COMPLETED" | "REJECTED" | "SPAM";
+  status:
+    | "PENDING"
+    | "COMPLETED"
+    | "REJECTED"
+    | "SPAM";
 };
 
-function StatusBadge({ status }: StatusProps) {
+function StatusBadge({
+  status,
+}: StatusProps) {
   const styles = {
-    PENDING: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    COMPLETED:
+      "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
 
-    COMPLETED: "bg-green-100 text-green-700 border-green-200",
+    PENDING:
+      "border-amber-500/20 bg-amber-500/10 text-amber-300",
 
-    REJECTED: "bg-red-100 text-red-700 border-red-200",
+    REJECTED:
+      "border-red-500/20 bg-red-500/10 text-red-300",
 
-    SPAM: "bg-zinc-200 text-zinc-700 border-zinc-300",
+    SPAM:
+      "border-zinc-500/20 bg-zinc-500/10 text-zinc-300",
   };
 
   return (
