@@ -4,6 +4,12 @@ A futuristic full-stack form builder platform built with modern web technologies
 Create immersive forms, collect submissions, manage responses, and build cinematic form experiences with a beautiful sacred-tech inspired UI.
 
 ---
+### Live URL : https://chaiforms-web.vercel.app/
+
+### Demo Credentials :
+email : rohit@gmail.com
+
+password : Rohit12345
 
 # Features
 
