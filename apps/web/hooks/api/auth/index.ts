@@ -77,7 +77,14 @@ export const useUser = () => {
       status,
    } = trpc.auth.getLoggedInUserInfo.useQuery()
 
-   console.log("useUser data : ", user)
+   console.log({
+      user,
+      error,
+      status,
+      isLoading,
+      isFetching,
+      isFetched,
+   });
 
    return {
       user,

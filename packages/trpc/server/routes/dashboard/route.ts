@@ -19,11 +19,9 @@ export const dashboardRouter = router({
                 tags: TAGS,
             },
         })
-
         .output(
             getDashboardOverviewOutputModel
         )
-
         .query(async ({ ctx }) => {
 
             return dashboardService

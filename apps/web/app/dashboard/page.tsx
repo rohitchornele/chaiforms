@@ -37,17 +37,17 @@ import { useEffect } from "react";
 export default function DashboardPage() {
   const router = useRouter();
 
-  const { user, error } = useUser();
+  const { user, error, isLoading: isUserLoading, isFetched } = useUser();
 
   useEffect(() => {
-    if (error) {
+    if (isFetched && error) {
       router.replace("/login");
     }
-  }, [error, router]);
+  }, [isFetched, error, router]);
 
-  const { dashboard, isLoading, isFetching } = useDashboardOverview();
 
-  if (isLoading) {
+
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#050505]">
         <div className="flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-5 backdrop-blur-3xl">
@@ -62,6 +62,8 @@ export default function DashboardPage() {
   if (!user) {
     return null;
   }
+
+    const { dashboard, isLoading, isFetching } = useDashboardOverview();
 
   if (isLoading || isFetching) {
     return (
