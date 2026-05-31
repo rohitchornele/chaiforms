@@ -42,6 +42,10 @@ export function LoginForm() {
       password: values.password,
     });
 
+    await new Promise((resolve) =>
+  setTimeout(resolve, 1000)
+);
+
     router.replace("/dashboard");
   };
 
