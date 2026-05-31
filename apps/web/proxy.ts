@@ -110,7 +110,11 @@ export function proxy(request: NextRequest) {
   const token =
     request.cookies.get("authentication-token")?.value;
 
+    console.log("TOKEN:", token);
+
   const pathname = request.nextUrl.pathname;
+
+  console.log("pathname:", pathname);
 
   const isDashboardRoute =
     pathname.startsWith("/dashboard");
