@@ -144,7 +144,6 @@ export function DashboardHeader() {
               <div className="hidden text-left md:block">
 
                 <p className="text-sm font-medium text-white">
-                  Rohit
                 </p>
 
                 <p className="mt-0.5 text-xs text-white/40">

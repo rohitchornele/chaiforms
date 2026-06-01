@@ -45,8 +45,6 @@ export default function DashboardPage() {
     }
   }, [isFetched, error, router]);
 
-
-
   if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-[#050505]">
@@ -63,7 +61,7 @@ export default function DashboardPage() {
     return null;
   }
 
-    const { dashboard, isLoading, isFetching } = useDashboardOverview();
+  const { dashboard, isLoading, isFetching } = useDashboardOverview();
 
   if (isLoading || isFetching) {
     return (
@@ -117,7 +115,7 @@ export default function DashboardPage() {
             <h1 className="mt-6 text-5xl font-black tracking-tight text-white md:text-7xl">
               Welcome back,
               <br />
-              Rohit.
+              {user?.fullName}
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/60 md:text-lg">

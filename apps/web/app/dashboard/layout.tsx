@@ -13,8 +13,8 @@ interface DashboardLayoutProps {
 
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <DashboardLayoutProvider>
-      <DashboardGuard>
+    <DashboardGuard>
+      <DashboardLayoutProvider>
         <div className="relative flex h-screen overflow-hidden bg-[#050505] text-white">
           {/* Background */}
           <div className="absolute inset-0 overflow-hidden">
@@ -39,7 +39,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
             </main>
           </div>
         </div>
-      </DashboardGuard>
-    </DashboardLayoutProvider>
+      </DashboardLayoutProvider>
+    </DashboardGuard>
   );
 }
