@@ -83,7 +83,7 @@
 //                   </div>
 
 //                   <div>
-//                     <p className="text-sm font-medium leading-none">FormNova</p>
+//                     <p className="text-sm font-medium leading-none">ChaiForms</p>
 
 //                     <p className="text-xs text-muted-foreground">Form Builder</p>
 //                   </div>
@@ -328,7 +328,7 @@ export function MobileSidebar() {
                   <div>
 
                     <p className="text-sm font-semibold tracking-tight text-white">
-                      FormNova
+                      ChaiForms
                     </p>
 
                     <p className="mt-0.5 text-xs text-white/40">

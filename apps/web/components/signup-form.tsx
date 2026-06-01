@@ -122,7 +122,7 @@ export function SignupForm() {
 
               <Input
                 type="text"
-                placeholder="Rohit Chornele"
+                placeholder="John Doe"
                 className="
                   h-14
                   rounded-2xl

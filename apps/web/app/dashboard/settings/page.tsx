@@ -20,8 +20,12 @@ import {
 } from "lucide-react";
 
 import { motion } from "framer-motion";
+import { useUser } from "~/hooks/api/auth";
 
 export default function DashboardSettingsPage() {
+
+  const {user} = useUser();
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#050505] text-white">
       {/* Background */}
@@ -108,12 +112,12 @@ export default function DashboardSettingsPage() {
           >
             <SettingsRow
               title="Display Name"
-              subtitle="Rohit Chornele"
+              subtitle= {user!.fullName}
             />
 
             <SettingsRow
               title="Email Address"
-              subtitle="rohitchornele@example.com"
+              subtitle={user!.email}
             />
 
             <SettingsRow

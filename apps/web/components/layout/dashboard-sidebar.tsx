@@ -69,7 +69,7 @@
 //               animate={{ opacity: 1 }}
 //               className="overflow-hidden"
 //             >
-//               <p className="truncate text-sm font-semibold">FormNova</p>
+//               <p className="truncate text-sm font-semibold">ChaiForms</p>
 
 //               <p className="truncate text-xs text-muted-foreground">Form Builder</p>
 //             </motion.div>
@@ -265,7 +265,7 @@ export function DashboardSidebar() {
               className="overflow-hidden"
             >
               <p className="truncate text-base font-semibold tracking-tight text-white">
-                FormNova
+                ChaiForms
               </p>
 
               <p className="mt-0.5 truncate text-xs text-white/40">
