@@ -39,3 +39,10 @@ export const deleteFieldInput = z.object({
 })
 
 export type DeleteFieldInputType = z.infer<typeof deleteFieldInput>
+
+export const reorderFieldsInput = z.object({
+    formId : z.string().uuid().describe('UUID of the form'),
+    fieldIds : z.array(z.string().uuid()).describe('Every field of the form, in the new order'),
+})
+
+export type ReorderFieldsInputType = z.infer<typeof reorderFieldsInput>

@@ -23,6 +23,7 @@ import {
 } from "./model";
 import { formFieldsTable } from "@repo/database/models/form-field";
 import { createHmac, randomBytes } from "node:crypto";
+import { assertFormIsOpen, assertFormPassword, FormAccessError } from "./access";
 
 function generateSlug(title: string) {
   const cleanTitle = title
@@ -110,7 +111,7 @@ class FormService {
     }));
   }
 
-  public async getFormById(payload: GetFormByIdInputType) {
+  public async getFormById(payload: GetFormByIdInputType, userId: string) {
     const { formId } = await getFormByIdInput.parseAsync(payload);
 
     const result = await db
@@ -121,7 +122,6 @@ class FormService {
         description: formsTable.description,
         visibility: formsTable.visibility,
         isPasswordProtected: formsTable.isPasswordProtected,
-        passwordHash: formsTable.passwordHash,
         publishedAt: formsTable.publishedAt,
         expiryDate: formsTable.expiryDate,
         theme: formsTable.theme,
@@ -131,7 +131,7 @@ class FormService {
         updatedAt: formsTable.updatedAt,
       })
       .from(formsTable)
-      .where(eq(formsTable.id, formId));
+      .where(and(eq(formsTable.id, formId), eq(formsTable.createdBy, userId)));
 
     // if(!result || result.length === 0 || result[0] === undefined) throw new Error("Something went wrong")
 
@@ -149,7 +149,7 @@ class FormService {
     };
   }
 
-  public async getFormAndFieldsById(payload: GetFormByIdInputType) {
+  public async getFormAndFieldsById(payload: GetFormByIdInputType, userId: string) {
     const { formId: requestedFormId } = await getFormByIdInput.parseAsync(payload);
 
     const rows = await db
@@ -176,7 +176,7 @@ class FormService {
       })
       .from(formsTable)
       .leftJoin(formFieldsTable, eq(formFieldsTable.formId, formsTable.id))
-      .where(eq(formsTable.id, requestedFormId))
+      .where(and(eq(formsTable.id, requestedFormId), eq(formsTable.createdBy, userId)))
       .orderBy(asc(formFieldsTable.orderIndex));
 
     if (rows.length === 0) return null;
@@ -376,6 +376,8 @@ class FormService {
 
         responseLimit: formsTable.responseLimit,
 
+        responseCount: formsTable.responseCount,
+
         isPasswordProtected: formsTable.isPasswordProtected,
 
         theme: formsTable.theme,
@@ -387,50 +389,13 @@ class FormService {
     const form = formRows[0];
 
     if (!form) {
-      throw new Error("Form not found");
+      throw new FormAccessError("Form not found");
     }
 
-    // Visibility check
-    if (form.visibility === "PRIVATE") {
-      throw new Error("Form is private");
-    }
+    assertFormIsOpen(form);
 
-    if (form.status == "ARCHIVE") {
-      throw new Error("No longer accepting submissions");
-    }
-
-    // Published check
-    if (form.status !== "PUBLISHED") {
-      throw new Error("Form is not published yet");
-    }
-
-    // Expiry check
-    if (form.expiryDate && new Date() > form.expiryDate) {
-      throw new Error("Form has expired");
-    }
-
-    // Get fields
-    const fields = await db
-      .select({
-        fieldId: formFieldsTable.id,
-
-        label: formFieldsTable.label,
-
-        labelKey: formFieldsTable.labelKey,
-
-        type: formFieldsTable.type,
-
-        isRequired: formFieldsTable.isRequired,
-
-        placeholder: formFieldsTable.placeholder,
-
-        description: formFieldsTable.description,
-
-        orderIndex: formFieldsTable.orderIndex,
-      })
-      .from(formFieldsTable)
-      .where(eq(formFieldsTable.formId, form.formId))
-      .orderBy(asc(formFieldsTable.orderIndex));
+    // A protected form's fields are only returned by verifyFormPassword.
+    const fields = form.isPasswordProtected ? [] : await this.getPublicFields(form.formId);
 
     return {
       formId: form.formId,
@@ -454,7 +419,17 @@ class FormService {
 
     const formRows = await db
       .select({
-        slug: formsTable.slug,
+        formId: formsTable.id,
+
+        visibility: formsTable.visibility,
+
+        status: formsTable.status,
+
+        expiryDate: formsTable.expiryDate,
+
+        responseLimit: formsTable.responseLimit,
+
+        responseCount: formsTable.responseCount,
 
         passwordHash: formsTable.passwordHash,
 
@@ -467,32 +442,42 @@ class FormService {
     const form = formRows[0];
 
     if (!form) {
-      throw new Error("Form not found");
+      throw new FormAccessError("Form not found");
     }
 
-    // Not protected
-    if (!form.isPasswordProtected) {
-      return { success: true };
-    }
+    assertFormIsOpen(form);
 
-    // Missing hash
-    if (!form.passwordHash) {
-      throw new Error("Password not configured");
-    }
-
-    const [salt, storedHash] = form.passwordHash.split(":");
-
-    const incomingHash = await this.generateHash(salt!, validatedData.password);
-
-    const isValid = incomingHash === storedHash;
-
-    if (!isValid) {
-      throw new Error("Invalid password");
-    }
+    assertFormPassword(form, validatedData.password);
 
     return {
       success: true,
+
+      fields: await this.getPublicFields(form.formId),
     };
+  }
+
+  private async getPublicFields(formId: string) {
+    return db
+      .select({
+        fieldId: formFieldsTable.id,
+
+        label: formFieldsTable.label,
+
+        labelKey: formFieldsTable.labelKey,
+
+        type: formFieldsTable.type,
+
+        isRequired: formFieldsTable.isRequired,
+
+        placeholder: formFieldsTable.placeholder,
+
+        description: formFieldsTable.description,
+
+        orderIndex: formFieldsTable.orderIndex,
+      })
+      .from(formFieldsTable)
+      .where(eq(formFieldsTable.formId, formId))
+      .orderBy(asc(formFieldsTable.orderIndex));
   }
 
   public async listPublicForms(page = 1, limit = 12) {

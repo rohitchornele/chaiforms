@@ -1,14 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 
 import { useParams } from "next/navigation";
 
-import { Loader2, AlertCircle } from "lucide-react";
+import { AlertCircle, Check, Loader2 } from "lucide-react";
 
-import { useGetPublicForm, useVerifyFormPassword, useSubmitForm } from "~/hooks/api/form";
+import {
+  getFieldError,
+  PublicFormField,
+  type PublicField,
+} from "~/components/forms/public-field";
+
+import { useGetPublicForm, useSubmitForm, useVerifyFormPassword } from "~/hooks/api/form";
 
 import { FORM_THEMES, type FormTheme } from "~/lib/form-themes";
+
+function ThemedPage({ theme, children }: { theme: FormTheme; children: ReactNode }) {
+  const styles = FORM_THEMES[theme];
+
+  return (
+    <main
+      className={`relative min-h-screen overflow-hidden p-4 font-[family-name:var(--font-geist-sans)] md:p-10 ${styles.page}`}
+    >
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${styles.backgroundGlow}`}
+      />
+
+      <div className="relative">{children}</div>
+    </main>
+  );
+}
+
+function MessageCard({ theme, children }: { theme: FormTheme; children: ReactNode }) {
+  return (
+    <ThemedPage theme={theme}>
+      <div className="flex min-h-[calc(100vh-2rem)] items-center justify-center md:min-h-[calc(100vh-5rem)]">
+        <div className={`w-full max-w-md rounded-2xl p-6 md:p-8 ${FORM_THEMES[theme].card}`}>
+          {children}
+        </div>
+      </div>
+    </ThemedPage>
+  );
+}
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -19,9 +54,13 @@ export default function PublicFormPage() {
 
   const [password, setPassword] = useState("");
 
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlockedFields, setUnlockedFields] = useState<PublicField[] | null>(null);
 
   const [values, setValues] = useState<Record<string, string>>({});
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const [submitError, setSubmitError] = useState("");
 
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -33,261 +72,244 @@ export default function PublicFormPage() {
 
   const { submitFormAsync, isPending: isSubmitting } = useSubmitForm();
 
-  const handleVerifyPassword = async () => {
-    await verifyPasswordAsync({
-      slug,
+  const theme: FormTheme = form?.theme && form.theme in FORM_THEMES ? form.theme : "sacred-tech";
 
-      password,
+  const styles = FORM_THEMES[theme];
+
+  // The API only sends a protected form's fields after its password is verified.
+  const fields: PublicField[] = unlockedFields ?? form?.fields ?? [];
+
+  const handleVerifyPassword = async (event: FormEvent) => {
+    event.preventDefault();
+
+    try {
+      const result = await verifyPasswordAsync({ slug, password });
+
+      setUnlockedFields(result.fields);
+    } catch (err) {
+      // The hook's error state shows the message under the input.
+      console.error(err);
+    }
+  };
+
+  const handleChange = (field: PublicField, value: string) => {
+    setValues((prev) => ({ ...prev, [field.fieldId]: value }));
+
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+
+      delete next[field.fieldId];
+
+      return next;
     });
-
-    setIsUnlocked(true);
   };
 
-  const handleChange = (fieldId: string, value: string) => {
-    setValues((prev) => ({
-      ...prev,
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
 
-      [fieldId]: value,
-    }));
-  };
-
-  const handleSubmit = async () => {
     if (!form) return;
 
-    await submitFormAsync({
-      formId: form.formId,
-      responses: values,
-    });
+    const nextErrors: Record<string, string> = {};
 
-    setIsSubmitted(true);
+    for (const field of fields) {
+      const fieldError = getFieldError(field, values[field.fieldId]);
+
+      if (fieldError) nextErrors[field.fieldId] = fieldError;
+    }
+
+    setFieldErrors(nextErrors);
+
+    setSubmitError("");
+
+    const firstInvalid = fields.find((field) => nextErrors[field.fieldId]);
+
+    if (firstInvalid) {
+      const inputId = `field-${firstInvalid.fieldId}`;
+
+      const target =
+        document.getElementById(inputId) ??
+        document.querySelector<HTMLElement>(`[name="${inputId}"]`);
+
+      target?.focus();
+
+      return;
+    }
+
+    const responses = Object.fromEntries(
+      Object.entries(values).filter(([, value]) => value.trim() !== ""),
+    );
+
+    try {
+      await submitFormAsync({
+        formId: form.formId,
+        responses,
+        password: form.isPasswordProtected ? password : undefined,
+      });
+
+      setIsSubmitted(true);
+    } catch (err) {
+      console.error(err);
+
+      // Form rules (expired, response limit reached...) come with a readable message.
+      const rejection = err as { message?: string; data?: { code?: string } };
+
+      setSubmitError(
+        rejection.data?.code === "PRECONDITION_FAILED" && rejection.message
+          ? rejection.message
+          : "We couldn't submit your response. Please try again.",
+      );
+    }
   };
 
-  const theme = FORM_THEMES[(form?.theme ?? "sacred-tech") as FormTheme];
-
-  // Success Screen
-  if (isSubmitted) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
-        <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-3xl font-bold text-zinc-900">🎉 Submitted</h1>
-
-          <p className="mt-3 text-zinc-500">Your response has been recorded successfully.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100">
-        <div className="flex items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-6 py-4 shadow-sm">
-          <Loader2 className="h-5 w-5 animate-spin text-zinc-700" />
-
-          <p className="text-sm font-medium text-zinc-700">Loading form...</p>
+      <ThemedPage theme={theme}>
+        <div className="flex min-h-[calc(100vh-5rem)] items-center justify-center" role="status">
+          <Loader2 aria-hidden="true" className="size-6 animate-spin" />
+          <span className="sr-only">Loading form</span>
         </div>
-      </div>
+      </ThemedPage>
     );
   }
 
-  // Password Screen
-  if (form?.isPasswordProtected && !isUnlocked) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
-        <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-zinc-900">Protected Form</h1>
-
-          <p className="mt-2 text-sm text-zinc-500">Enter password to continue</p>
-
-          <div className="mt-6">
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              className={`
-  w-full
-  rounded-2xl
-  border
-  px-4
-  py-3
-  outline-none
-  transition
-  ${theme.input}
-`}
-            />
-          </div>
-
-          {passwordError && (
-            <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {passwordError.message}
-            </div>
-          )}
-
-          <button
-            onClick={handleVerifyPassword}
-            disabled={isVerifyingPassword}
-            className="mt-5 w-full rounded-2xl bg-zinc-900 px-4 py-3 text-white transition hover:bg-black disabled:opacity-50"
-          >
-            {isVerifyingPassword ? "Verifying..." : "Unlock Form"}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Error Screen
   if (error || !form) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4">
-        <div className="w-full max-w-md rounded-3xl border border-red-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3 text-red-600">
-            <AlertCircle className="h-6 w-6" />
+      <MessageCard theme={theme}>
+        <div className="flex items-start gap-3" role="alert">
+          <AlertCircle aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-cf-danger" />
 
-            <h2 className="text-lg font-semibold">{error?.message || "Form not found"}</h2>
+          <div>
+            <h1 className={`text-lg font-semibold ${styles.title}`}>This form isn&apos;t available</h1>
+
+            <p className={`mt-1 text-sm ${styles.description}`}>
+              {error?.message || "Form not found"}
+            </p>
           </div>
         </div>
-      </div>
+      </MessageCard>
+    );
+  }
+
+  if (isSubmitted) {
+    return (
+      <MessageCard theme={theme}>
+        <div className="text-center" role="status">
+          <span
+            aria-hidden="true"
+            className={`mx-auto flex size-11 items-center justify-center rounded-full ${styles.button}`}
+          >
+            <Check className="size-5" />
+          </span>
+
+          <h1 className={`mt-4 text-2xl font-bold tracking-tight ${styles.title}`}>
+            Response submitted
+          </h1>
+
+          <p className={`mt-2 text-sm ${styles.description}`}>
+            Thanks. Your response to {form.title} has been recorded.
+          </p>
+        </div>
+      </MessageCard>
+    );
+  }
+
+  if (form.isPasswordProtected && !unlockedFields) {
+    return (
+      <MessageCard theme={theme}>
+        <form onSubmit={handleVerifyPassword} className="flex flex-col gap-5">
+          <div>
+            <h1 className={`text-2xl font-bold tracking-tight break-words ${styles.title}`}>
+              {form.title}
+            </h1>
+
+            <p className={`mt-2 text-sm ${styles.description}`}>
+              This form is protected. Enter the password to continue.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label htmlFor="form-password" className={`text-sm font-medium ${styles.label}`}>
+              Password
+            </label>
+
+            <input
+              id="form-password"
+              type="password"
+              required
+              value={password}
+              aria-invalid={Boolean(passwordError)}
+              aria-describedby={passwordError ? "form-password-error" : undefined}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`min-h-11 w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition ${styles.input} ${styles.focusRing}`}
+            />
+
+            {passwordError && (
+              <p id="form-password-error" className="text-[13px] text-cf-danger">
+                {passwordError.message}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isVerifyingPassword}
+            className={`min-h-11 w-full rounded-lg px-4 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${styles.button}`}
+          >
+            {isVerifyingPassword ? "Checking..." : "Continue"}
+          </button>
+        </form>
+      </MessageCard>
     );
   }
 
   return (
-    <div
-      className={`
-    relative
-    min-h-screen
-    overflow-hidden
-    p-4
-    md:p-10
-    ${theme.page}
-  `}
-    >
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className={`
-      absolute inset-0
-      bg-gradient-to-br
-      ${theme.backgroundGlow}
-    `}
-        />
-
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
-      </div>
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className={`
-      absolute inset-0
-      bg-gradient-to-br
-      ${theme.backgroundGlow}
-    `}
-        />
-
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:60px_60px]" />
-      </div>
-      <div
-        className={`
-    relative
-    mx-auto
-    max-w-3xl
-    rounded-[32px]
-    p-6
-    shadow-2xl
-    backdrop-blur-3xl
-    md:p-10
-    ${theme.card}
-  `}
+    <ThemedPage theme={theme}>
+      <form
+        noValidate
+        onSubmit={handleSubmit}
+        className={`mx-auto max-w-[640px] rounded-2xl p-6 md:p-10 ${styles.card}`}
       >
-        {/* Header */}
         <div className="mb-8">
           <h1
-            className={`
-    text-3xl
-    font-bold
-    tracking-tight
-    ${theme.title}
-  `}
+            className={`text-[28px] leading-tight font-bold tracking-tight break-words ${styles.title}`}
           >
             {form.title}
           </h1>
 
           {form.description && (
-            <p
-              className={`
-    mt-3
-    leading-relaxed
-    ${theme.description}
-  `}
-            >
+            <p className={`mt-2.5 text-[15px] leading-relaxed ${styles.description}`}>
               {form.description}
             </p>
           )}
         </div>
 
-        {/* Fields */}
-        <div className="space-y-6">
-          {form.fields.map((field) => (
-            <div key={field.fieldId}>
-              <label
-                className={`
-  text-sm
-  font-medium
-  ${theme.label}
-`}
-              >
-                {field.label}
-
-                {field.isRequired && <span className="ml-1 text-red-500">*</span>}
-              </label>
-
-              {field.description && (
-                <p className="mb-2 text-sm text-zinc-500">{field.description}</p>
-              )}
-
-              <input
-                type="text"
-                value={values[field.fieldId] || ""}
-                onChange={(e) =>
-                  handleChange(
-                    field.fieldId,
-
-                    e.target.value,
-                  )
-                }
-                placeholder={field.placeholder || ""}
-                className={`
-  w-full
-  rounded-2xl
-  border
-  px-4
-  py-3
-  outline-none
-  transition
-  ${theme.input}
-`}
-              />
-            </div>
+        <div className="flex flex-col gap-6">
+          {fields.map((field) => (
+            <PublicFormField
+              key={field.fieldId}
+              field={field}
+              theme={theme}
+              value={values[field.fieldId] ?? ""}
+              error={fieldErrors[field.fieldId]}
+              onChange={(value) => handleChange(field, value)}
+            />
           ))}
         </div>
 
-        {/* Submit */}
+        {submitError && (
+          <p role="alert" className="mt-6 text-sm text-cf-danger">
+            {submitError}
+          </p>
+        )}
+
         <button
-          onClick={handleSubmit}
+          type="submit"
           disabled={isSubmitting}
-          className={`
-  mt-8
-  w-full
-  rounded-2xl
-  px-5
-  py-3
-  text-sm
-  font-medium
-  transition
-  ${theme.button}
-`}
+          className={`mt-8 min-h-11 w-full rounded-lg px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${styles.button}`}
         >
-          {isSubmitting ? "Submitting..." : "Submit Form"}
+          {isSubmitting ? "Submitting..." : "Submit"}
         </button>
-      </div>
-    </div>
+      </form>
+    </ThemedPage>
   );
 }

@@ -1,4 +1,4 @@
-import db, { and, desc, eq, sql } from "@repo/database";
+import db, { and, desc, eq, isNull, lt, or, sql } from "@repo/database";
 import {
   createFormSubmissionInputModel,
   CreateFormSubmissionInputType,
@@ -8,70 +8,81 @@ import {
   GetFormSubmissionsOutputType,
 } from "./model";
 import { formsTable } from "@repo/database/models/form";
+import { formFieldsTable } from "@repo/database/models/form-field";
 import { formSubmissionTable } from "@repo/database/models/form-submission";
-import { createHmac } from "node:crypto";
+import {
+  assertFormIsOpen,
+  assertFormPassword,
+  FormAccessError,
+  validateResponses,
+} from "../form/access";
 
 class SubmissionService {
-  private async generateHash(salt: string, password: string) {
-    return createHmac("sha256", salt).update(password).digest("hex");
-  }
-
   public async createSubmission(
     payload: CreateFormSubmissionInputType,
   ): Promise<CreateFormSubmissionOutputType> {
     const { formId, responses, password } =
       await createFormSubmissionInputModel.parseAsync(payload);
 
-    // Check form exists
     const rows = await db.select().from(formsTable).where(eq(formsTable.id, formId)).limit(1);
 
     const form = rows[0];
 
     if (!form) {
-      throw new Error("Form not found");
+      throw new FormAccessError("Form not found");
     }
 
-    // Password validation
-    // if (form.isPasswordProtected) {
+    assertFormIsOpen(form);
 
-    //     if (!validatedData.password) {
-    //         throw new Error(
-    //             "Password is required"
-    //         );
-    //     }
+    assertFormPassword(form, password);
 
-    //     const isPasswordValid =
-    //         await bcrypt.compare(
-    //             validatedData.password,
-    //             form.passwordHash!
-    //         );
-
-    //     if (!isPasswordValid) {
-    //         throw new Error(
-    //             "Invalid form password"
-    //         );
-    //     }
-    // }
-
-    // Insert submission
-    const insertedSubmission = await db
-      .insert(formSubmissionTable)
-      .values({ formId, responses, status: "COMPLETED" })
-      .returning({
-        submissionId: formSubmissionTable.id,
-        formId: formSubmissionTable.formId,
-        status: formSubmissionTable.status,
-        createdAt: formSubmissionTable.createdAt,
-      });
-
-    await db
-      .update(formsTable)
-      .set({
-        responseCount: sql`${formsTable.responseCount} + 1`,
+    const fields = await db
+      .select({
+        id: formFieldsTable.id,
+        label: formFieldsTable.label,
+        type: formFieldsTable.type,
+        isRequired: formFieldsTable.isRequired,
       })
-      .where(eq(formsTable.id, formId));
+      .from(formFieldsTable)
+      .where(eq(formFieldsTable.formId, formId));
 
-    return insertedSubmission[0]!;
+    const validatedResponses = validateResponses(fields, responses);
+
+    return db.transaction(async (tx) => {
+      // Claiming the slot in the WHERE clause stops simultaneous submissions
+      // from going over the response limit.
+      const claimed = await tx
+        .update(formsTable)
+        .set({
+          responseCount: sql`${formsTable.responseCount} + 1`,
+        })
+        .where(
+          and(
+            eq(formsTable.id, formId),
+            or(
+              isNull(formsTable.responseLimit),
+              lt(formsTable.responseCount, formsTable.responseLimit),
+            ),
+          ),
+        )
+        .returning({ id: formsTable.id });
+
+      if (claimed.length === 0) {
+        throw new FormAccessError("No longer accepting submissions");
+      }
+
+      const insertedSubmission = await tx
+        .insert(formSubmissionTable)
+        .values({ formId, responses: validatedResponses, status: "COMPLETED" })
+        .returning({
+          submissionId: formSubmissionTable.id,
+          formId: formSubmissionTable.formId,
+          status: formSubmissionTable.status,
+          createdAt: formSubmissionTable.createdAt,
+        });
+
+      return insertedSubmission[0]!;
+    });
   }
 
   public async getFormSubmissions(

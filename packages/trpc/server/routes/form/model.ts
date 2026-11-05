@@ -63,8 +63,6 @@ export const getFormByIdOutputModel = z.object({
 
   isPasswordProtected: z.boolean(),
 
-  passwordHash: z.string().nullable().optional().describe("Hashed password of protected form"),
-
   theme: z.enum(
     FORM_THEME_VALUES
   ).default("sacred-tech").optional(),
@@ -135,6 +133,15 @@ export const deleteFieldInputModel = z.object({
 
 export const deleteFieldOutputModel = z.object({
   fieldId: z.string().uuid().describe("UUID of the deleted field"),
+});
+
+export const reorderFieldsInputModel = z.object({
+  formId: z.string().uuid().describe("UUID of the form"),
+  fieldIds: z.array(z.string().uuid()).describe("Every field of the form, in the new order"),
+});
+
+export const reorderFieldsOutputModel = z.object({
+  success: z.boolean(),
 });
 
 export const getFormAndFieldByFormIdInputModel = z.object({
@@ -331,6 +338,7 @@ export const verifyFormPasswordInputModel = z.object({
 
 export const verifyFormPasswordOutputModel = z.object({
   success: z.boolean(),
+  fields: getPublicFormBySlugOutputModel.shape.fields,
 });
 
 

@@ -21,6 +21,8 @@ import {
   listFormsByUserIdOutputModel,
   listPublicFormsInput,
   listPublicFormsOutput,
+  reorderFieldsInputModel,
+  reorderFieldsOutputModel,
   submitFormInputModel,
   submitFormOutputModel,
   updateFieldInputModel,
@@ -33,10 +35,25 @@ import {
   verifyFormPasswordOutputModel,
 } from "./model";
 import z from "zod";
+import { TRPCError } from "@trpc/server";
+import { FormAccessError } from "@repo/services/form/access";
 import { FormTheme } from "@repo/services/form/model";
 
 const TAGS = ["Form"];
 const getPath = generatePath("/form");
+
+/** Sends form rule rejections as client errors, with a message the UI can show. */
+async function withFormAccessErrors<T>(action: () => Promise<T>) {
+  try {
+    return await action();
+  } catch (error) {
+    if (error instanceof FormAccessError) {
+      throw new TRPCError({ code: "PRECONDITION_FAILED", message: error.message });
+    }
+
+    throw error;
+  }
+}
 
 export const formRouter = router({
   // -----------Form Procedures ----------------------
@@ -101,34 +118,39 @@ export const formRouter = router({
       }));
     }),
 
-  getFormById: publicProcedure
+  getFormById: authenticatedProcedure
     .meta({
       openapi: {
         method: "GET",
         path: getPath("/getFormById"),
         tags: TAGS,
+        protect: true,
       },
     })
     .input(getFormByIdInputModel)
     .output(getFormByIdOutputModel)
-    .query(async ({ input }) => {
-      return await formService.getFormById({
-        formId: input.formId,
-      });
+    .query(async ({ input, ctx }) => {
+      return await formService.getFormById(
+        {
+          formId: input.formId,
+        },
+        ctx.user.id,
+      );
     }),
 
-  getFormAndFieldById: publicProcedure
+  getFormAndFieldById: authenticatedProcedure
     .meta({
       openapi: {
         method: "GET",
         path: getPath("/getFormAndFieldById"),
         tags: TAGS,
+        protect: true,
       },
     })
     .input(getFormAndFieldInputModel)
     .output(getFormAndFieldByFormIdOutputModel)
-    .query(async ({ input }) => {
-      return formService.getFormAndFieldsById({ formId: input.formId });
+    .query(async ({ input, ctx }) => {
+      return formService.getFormAndFieldsById({ formId: input.formId }, ctx.user.id);
     }),
 
   getFormSubmissions: authenticatedProcedure
@@ -201,7 +223,7 @@ export const formRouter = router({
 
     .output(getPublicFormBySlugOutputModel)
     .query(async ({ input }) => {
-      return formService.getPublicFormBySlug(input);
+      return withFormAccessErrors(() => formService.getPublicFormBySlug(input));
     }),
 
   verifyFormPassword: publicProcedure
@@ -221,7 +243,7 @@ export const formRouter = router({
     .output(verifyFormPasswordOutputModel)
 
     .mutation(async ({ input }) => {
-      return formService.verifyFormPassword(input);
+      return withFormAccessErrors(() => formService.verifyFormPassword(input));
     }),
 
 
@@ -256,8 +278,8 @@ export const formRouter = router({
     })
     .input(createFieldInputModel)
     .output(createFieldOutputModel)
-    .mutation(async ({ input }) => {
-      return await formFieldService.createField(input);
+    .mutation(async ({ input, ctx }) => {
+      return await formFieldService.createField(input, ctx.user.id);
     }),
 
   updateField: authenticatedProcedure
@@ -271,8 +293,8 @@ export const formRouter = router({
     })
     .input(updateFieldInputModel)
     .output(updateFieldOutputModel)
-    .mutation(async ({ input }) => {
-      return await formFieldService.updateField(input);
+    .mutation(async ({ input, ctx }) => {
+      return await formFieldService.updateField(input, ctx.user.id);
     }),
 
   getField: authenticatedProcedure
@@ -286,10 +308,13 @@ export const formRouter = router({
     })
     .input(getFieldInputModel)
     .output(getFieldOutputModel)
-    .query(async ({ input }) => {
-      return await formFieldService.getField({
-        formId: input.formId,
-      });
+    .query(async ({ input, ctx }) => {
+      return await formFieldService.getField(
+        {
+          formId: input.formId,
+        },
+        ctx.user.id,
+      );
     }),
 
   deleteField: authenticatedProcedure
@@ -303,8 +328,23 @@ export const formRouter = router({
     })
     .input(deleteFieldInputModel)
     .output(deleteFieldOutputModel)
-    .mutation(async ({ input }) => {
-      return await formFieldService.deleteField({ fieldId: input.fieldId });
+    .mutation(async ({ input, ctx }) => {
+      return await formFieldService.deleteField({ fieldId: input.fieldId }, ctx.user.id);
+    }),
+
+  reorderFields: authenticatedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/reorderFields"),
+        tags: TAGS,
+        protect: true,
+      },
+    })
+    .input(reorderFieldsInputModel)
+    .output(reorderFieldsOutputModel)
+    .mutation(async ({ input, ctx }) => {
+      return await formFieldService.reorderFields(input, ctx.user.id);
     }),
 
   // submit form route
@@ -320,6 +360,6 @@ export const formRouter = router({
     .input(submitFormInputModel)
     .output(submitFormOutputModel)
     .mutation(async ({ input }) => {
-      return await submissionService.createSubmission(input);
+      return withFormAccessErrors(() => submissionService.createSubmission(input));
     }),
 });

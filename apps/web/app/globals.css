@@ -3,6 +3,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --color-cf-ground: #050505;
+  --color-cf-panel: #0e0e0f;
+  --color-cf-raised: #1c1c1f;
+  --color-cf-line: #26262a;
+  --color-cf-line-strong: #6b6863;
+  --color-cf-text: #f3ebdd;
+  --color-cf-subtle: #c8c4bb;
+  --color-cf-muted: #a8a49c;
+  --color-cf-accent: #c9732b;
+  --color-cf-accent-soft: #e89a57;
+  --color-cf-danger: #f2a58e;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

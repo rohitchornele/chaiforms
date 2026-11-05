@@ -2,96 +2,33 @@
 
 import Link from "next/link";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 
-import {
-  Plus,
-  Trash2,
-  ChevronDown,
-  Pencil,
-  Check,
-  X,
-  Eye,
-  Settings,
-  Globe,
-  Loader2,
-  ArrowLeft,
-} from "lucide-react";
+import { ArrowLeft, Eye, Loader2, SlidersHorizontal } from "lucide-react";
+
+import { toast } from "sonner";
+
+import { BuilderSidebar } from "~/components/forms/builder/builder-sidebar";
+import { FieldInspector } from "~/components/forms/builder/field-inspector";
+import { FormPreview, type PreviewDevice } from "~/components/forms/builder/form-preview";
+import { FIELD_TYPES, type BuilderField, type FieldType } from "~/components/forms/builder/types";
 
 import {
   useCreateField,
   useDeleteField,
   useGetFields,
   useGetForm,
+  useReorderFields,
   useUpdateField,
   useUpdateForm,
 } from "~/hooks/api/form";
 
-import { FORM_THEMES, type FormTheme } from "~/lib/form-themes";
+import type { FormTheme } from "~/lib/form-themes";
 
-type FieldType = "TEXT" | "NUMBER" | "EMAIL" | "YES_NO" | "PASSWORD";
+import { trpc } from "~/trpc/client";
 
-type FormField = {
-  id: string;
-  label: string;
-  labelKey: string;
-  description: string;
-  placeholder: string;
-  isRequired: boolean;
-  orderIndex: number;
-  type: FieldType;
-};
-
-const FIELD_TYPES = [
-  {
-    value: "TEXT",
-    label: "Text",
-  },
-
-  {
-    value: "NUMBER",
-    label: "Number",
-  },
-
-  {
-    value: "EMAIL",
-    label: "Email",
-  },
-
-  {
-    value: "YES_NO",
-    label: "Yes / No",
-  },
-
-  {
-    value: "PASSWORD",
-    label: "Password",
-  },
-] as const;
-
-function toLabelKey(label: string) {
-  return label
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "");
-}
-
-function emptyDraft(): Omit<FormField, "id" | "orderIndex"> {
-  return {
-    label: "",
-
-    labelKey: "",
-
-    description: "",
-
-    placeholder: "",
-
-    isRequired: false,
-
-    type: "TEXT",
-  };
-}
+const quietActionClass =
+  "flex h-11 items-center gap-2 rounded-lg border border-cf-line px-3.5 text-sm font-medium text-cf-text transition-colors hover:bg-cf-raised";
 
 export default function FormBuilderPage({
   params,
@@ -102,7 +39,9 @@ export default function FormBuilderPage({
 }) {
   const { id } = use(params);
 
-  const { forms, isLoading: isLoadingForm } = useGetForm(id);
+  const utils = trpc.useUtils();
+
+  const { forms, isLoading: isLoadingForm, error: formError } = useGetForm(id);
 
   const { fields: existingFields, isLoading: isLoadingFields } = useGetFields(id);
 
@@ -112,772 +51,423 @@ export default function FormBuilderPage({
 
   const { deleteFieldAsync } = useDeleteField(id);
 
-  const { updateFormAsync, status: updateFormStatus } = useUpdateForm();
+  const { reorderFieldsAsync } = useReorderFields(id);
 
-  const [fields, setFields] = useState<FormField[]>([]);
+  const { updateFormAsync } = useUpdateForm();
 
-  const [draft, setDraft] = useState<Omit<FormField, "id" | "orderIndex">>(emptyDraft());
+  const [fields, setFields] = useState<BuilderField[]>([]);
 
-  const [draftError, setDraftError] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const [editingId, setEditingId] = useState<string>();
+  const [theme, setTheme] = useState<FormTheme>("sacred-tech");
 
-  const [showMobileBuilder, setShowMobileBuilder] = useState(false);
-
-  const [editDraft, setEditDraft] = useState<Omit<FormField, "id" | "orderIndex">>(emptyDraft());
+  const [device, setDevice] = useState<PreviewDevice>("desktop");
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const inspectorRef = useRef<HTMLElement>(null);
+
+  // Server data only replaces local state when there is nothing unsaved to lose.
+  useEffect(() => {
+    if (!existingFields || hasUnsavedChanges) return;
+
+    const next = existingFields.map((f) => ({
+      id: f.fieldId,
+      label: f.label,
+      description: f.description ?? "",
+      placeholder: f.placeholder ?? "",
+      isRequired: f.isRequired,
+      type: f.type as FieldType,
+    }));
+
+    setFields(next);
+
+    setSelectedId((current) =>
+      next.some((f) => f.id === current) ? current : (next[0]?.id ?? null),
+    );
+  }, [existingFields, hasUnsavedChanges]);
 
   useEffect(() => {
-    if (existingFields) {
-      setFields(
-        existingFields.map((f) => ({
-          id: f.fieldId,
-
-          label: f.label,
-
-          labelKey: toLabelKey(f.label),
-
-          description: f.description ?? "",
-
-          placeholder: f.placeholder ?? "",
-
-          isRequired: f.isRequired,
-
-          orderIndex: Number(f.orderIndex),
-
-          type: f.type as FieldType,
-        })),
-      );
-    }
-  }, [existingFields]);
-
-  const isPublishing = updateFormStatus === "pending";
+    if (forms?.theme && !hasUnsavedChanges) setTheme(forms.theme as FormTheme);
+  }, [forms?.theme, hasUnsavedChanges]);
 
   const isPublished = forms?.status === "PUBLISHED";
 
-  const theme = FORM_THEMES[(forms?.theme ?? "sacred-tech") as FormTheme];
+  const selectedIndex = fields.findIndex((f) => f.id === selectedId);
 
-  const publicUrl = useMemo(() => {
-    if (!forms?.slug) return "#";
+  const selectedField = fields[selectedIndex] ?? null;
 
-    return `/form/public/${forms.slug}`;
-  }, [forms]);
+  const isBusy = isSaving || isPublishing;
 
-  const setDraftField = (patch: Partial<typeof draft>) => {
-    setDraft((d) => ({
-      ...d,
+  // On stacked layouts the settings panel sits below the preview.
+  const revealInspector = () => {
+    if (!window.matchMedia("(max-width: 1279px)").matches) return;
 
-      ...patch,
-    }));
+    requestAnimationFrame(() => {
+      inspectorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+  };
+
+  const selectField = (fieldId: string) => {
+    setSelectedId(fieldId);
+
+    revealInspector();
+  };
+
+  const addField = (type: FieldType) => {
+    const fieldType = FIELD_TYPES.find((t) => t.value === type);
+
+    const field: BuilderField = {
+      id: crypto.randomUUID(),
+      label: `New ${fieldType?.label.toLowerCase() ?? "text"} field`,
+      description: "",
+      placeholder: "",
+      isRequired: false,
+      type,
+    };
+
+    setFields((prev) => [...prev, field]);
+
+    setHasUnsavedChanges(true);
+
+    selectField(field.id);
+  };
+
+  const updateSelectedField = (changes: Partial<BuilderField>) => {
+    setFields((prev) => prev.map((f) => (f.id === selectedId ? { ...f, ...changes } : f)));
+
+    setHasUnsavedChanges(true);
+  };
+
+  const moveSelectedField = (offset: -1 | 1) => {
+    const target = selectedIndex + offset;
+
+    const moved = fields[selectedIndex];
+
+    if (!moved || target < 0 || target >= fields.length) return;
+
+    const next = fields.filter((f) => f.id !== moved.id);
+
+    next.splice(target, 0, moved);
+
+    setFields(next);
+
+    setHasUnsavedChanges(true);
+  };
+
+  const deleteSelectedField = () => {
+    if (!selectedField) return;
+
+    const removed = selectedField;
+
+    const removedIndex = selectedIndex;
+
+    const remaining = fields.filter((f) => f.id !== removed.id);
+
+    setFields(remaining);
+
+    setSelectedId((remaining[removedIndex] ?? remaining[removedIndex - 1])?.id ?? null);
+
+    setHasUnsavedChanges(true);
+
+    toast(`Deleted "${removed.label || "Untitled field"}"`, {
+      action: {
+        label: "Undo",
+        onClick: () => {
+          setFields((prev) => {
+            const next = [...prev];
+
+            next.splice(Math.min(removedIndex, next.length), 0, removed);
+
+            return next;
+          });
+
+          setSelectedId(removed.id);
+        },
+      },
+    });
+  };
+
+  const changeTheme = (next: FormTheme) => {
+    if (next === theme) return;
+
+    setTheme(next);
+
+    setHasUnsavedChanges(true);
+  };
+
+  const buildFormUpdate = () => {
+    if (!forms) throw new Error("Form is not loaded");
+
+    return {
+      formId: forms.formId,
+      title: forms.title,
+      description: forms.description ?? null,
+      visibility: forms.visibility,
+      isPasswordProtected: forms.isPasswordProtected,
+      publishedAt: forms.publishedAt ?? null,
+      expiryDate: forms.expiryDate ?? null,
+      responseLimit: forms.responseLimit ?? null,
+      theme,
+      status: forms.status,
+    };
+  };
+
+  const saveChanges = async () => {
+    if (!forms) return false;
+
+    const unlabelled = fields.find((f) => !f.label.trim());
+
+    if (unlabelled) {
+      selectField(unlabelled.id);
+
+      toast.error("Every field needs a label before you can save.");
+
+      return false;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const savedIds = existingFields?.map((f) => f.fieldId) ?? [];
+
+      const currentIds = new Set(fields.map((f) => f.id));
+
+      for (const fieldId of savedIds.filter((savedId) => !currentIds.has(savedId))) {
+        await deleteFieldAsync({ fieldId });
+      }
+
+      const orderedIds: string[] = [];
+
+      const createdIds: string[] = [];
+
+      for (const field of fields) {
+        if (savedIds.includes(field.id)) {
+          await updateFieldAsync({
+            fieldId: field.id,
+            label: field.label,
+            type: field.type,
+            description: field.description,
+            placeholder: field.placeholder,
+            isRequired: field.isRequired,
+          });
+
+          orderedIds.push(field.id);
+        } else {
+          const created = await createFieldAsync({
+            formId: id,
+            label: field.label,
+            type: field.type,
+            description: field.description,
+            placeholder: field.placeholder,
+            isRequired: field.isRequired,
+          });
+
+          // Keep the real id locally so a retry after a later failure can't duplicate it.
+          setFields((prev) =>
+            prev.map((f) => (f.id === field.id ? { ...f, id: created.id } : f)),
+          );
+
+          setSelectedId((current) => (current === field.id ? created.id : current));
+
+          orderedIds.push(created.id);
+
+          createdIds.push(created.id);
+        }
+      }
+
+      // New fields are always appended, so only an actual move needs a reorder.
+      const orderInDatabase = [...savedIds.filter((f) => currentIds.has(f)), ...createdIds];
+
+      if (orderedIds.join() !== orderInDatabase.join()) {
+        await reorderFieldsAsync({ formId: id, fieldIds: orderedIds });
+      }
+
+      if (theme !== forms.theme) {
+        await updateFormAsync(buildFormUpdate());
+      }
+
+      await Promise.all([
+        utils.form.getField.invalidate({ formId: id }),
+        utils.form.getFormById.invalidate({ formId: id }),
+      ]);
+
+      setHasUnsavedChanges(false);
+
+      return true;
+    } catch (err) {
+      console.error(err);
+
+      toast.error("We couldn't save your changes. Please try again.");
+
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (await saveChanges()) toast.success("Changes saved");
   };
 
   const handlePublishToggle = async () => {
     if (!forms) return;
 
+    if (hasUnsavedChanges && !(await saveChanges())) return;
+
+    setIsPublishing(true);
+
     try {
       await updateFormAsync({
-        formId: forms.formId,
-
-        title: forms.title,
-
-        description: forms.description ?? null,
-
-        visibility: forms.visibility,
-
-        isPasswordProtected: forms.isPasswordProtected,
-
+        ...buildFormUpdate(),
         publishedAt: isPublished ? null : new Date(),
-
-        expiryDate: forms.expiryDate ?? null,
-
-        responseLimit: forms.responseLimit ?? null,
-
-        theme: forms.theme,
-
         status: isPublished ? "DRAFT" : "PUBLISHED",
       });
+
+      await utils.form.getFormById.invalidate({ formId: id });
+
+      toast.success(isPublished ? "Form unpublished" : "Form published");
     } catch (err) {
       console.error(err);
-    }
-  };
 
-  /**
-   * ADD FIELD
-   * LOCAL ONLY
-   */
-
-  const handleAddField = () => {
-    if (!draft.label.trim()) {
-      setDraftError("Label is required");
-
-      return;
-    }
-
-    setDraftError("");
-
-    setFields((prev) => [
-      ...prev,
-
-      {
-        id: crypto.randomUUID(),
-
-        label: draft.label,
-
-        labelKey: toLabelKey(draft.label),
-
-        description: draft.description,
-
-        placeholder: draft.placeholder,
-
-        isRequired: draft.isRequired,
-
-        orderIndex: prev.length + 1,
-
-        type: draft.type,
-      },
-    ]);
-
-    setHasUnsavedChanges(true);
-
-    setDraft(emptyDraft());
-  };
-
-  /**
-   * REMOVE FIELD
-   * LOCAL ONLY
-   */
-
-  const removeField = (fieldId: string) => {
-    setFields((prev) => prev.filter((f) => f.id !== fieldId));
-
-    setHasUnsavedChanges(true);
-  };
-
-  const startEditing = (field: FormField) => {
-    setEditingId(field.id);
-
-    setEditDraft({
-      label: field.label,
-
-      labelKey: field.labelKey,
-
-      description: field.description,
-
-      placeholder: field.placeholder,
-
-      isRequired: field.isRequired,
-
-      type: field.type,
-    });
-  };
-
-  const cancelEditing = () => {
-    setEditingId(undefined);
-
-    setEditDraft(emptyDraft());
-  };
-
-  /**
-   * EDIT SAVE
-   * LOCAL ONLY
-   */
-
-  const handleEditSave = (fieldId: string) => {
-    setFields((prev) =>
-      prev.map((f) =>
-        f.id === fieldId
-          ? {
-              ...f,
-
-              ...editDraft,
-            }
-          : f,
-      ),
-    );
-
-    setHasUnsavedChanges(true);
-
-    cancelEditing();
-  };
-
-  /**
-   * SAVE CHANGES
-   * DB SYNC
-   */
-
-  const handleSaveChanges = async () => {
-    try {
-      setIsSavingChanges(true);
-
-      const existingIds = existingFields?.map((f) => f.fieldId) || [];
-
-      const currentIds = fields.map((f) => f.id);
-
-      /**
-       * DELETE REMOVED
-       */
-
-      const removedIds = existingIds.filter((id) => !currentIds.includes(id));
-
-      for (const fieldId of removedIds) {
-        await deleteFieldAsync({
-          fieldId,
-        });
-      }
-
-      /**
-       * CREATE / UPDATE
-       */
-
-      for (const field of fields) {
-        const existsInDb = existingIds.includes(field.id);
-
-        if (existsInDb) {
-          await updateFieldAsync({
-            fieldId: field.id,
-
-            label: field.label,
-
-            type: field.type,
-
-            description: field.description,
-
-            placeholder: field.placeholder,
-
-            isRequired: field.isRequired,
-          });
-        } else {
-          await createFieldAsync({
-            formId: id,
-
-            label: field.label,
-
-            type: field.type,
-
-            description: field.description,
-
-            placeholder: field.placeholder,
-
-            isRequired: field.isRequired,
-          });
-        }
-      }
-
-      setHasUnsavedChanges(false);
-    } catch (err) {
-      console.error(err);
+      toast.error(`We couldn't ${isPublished ? "unpublish" : "publish"} this form.`);
     } finally {
-      setIsSavingChanges(false);
+      setIsPublishing(false);
     }
   };
 
   if (isLoadingForm || isLoadingFields) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black">
-        <Loader2 className="h-6 w-6 animate-spin text-white" />
+      <div className="flex min-h-[60vh] items-center justify-center" role="status">
+        <Loader2 aria-hidden="true" className="size-6 animate-spin text-cf-text" />
+        <span className="sr-only">Loading form</span>
+      </div>
+    );
+  }
+
+  if (formError || !forms) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
+        <p className="text-cf-text">We couldn't load this form.</p>
+
+        <Link href="/dashboard/forms" className={quietActionClass}>
+          <ArrowLeft aria-hidden="true" size={16} />
+          Back to forms
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-[#050505] text-white">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(201,115,43,0.15),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(31,74,59,0.15),transparent_30%)]" />
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-cf-line bg-cf-ground font-[family-name:var(--font-geist-sans)] text-sm text-cf-text">
+      <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-cf-line bg-cf-panel px-5 py-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <Link
+            href="/dashboard/forms"
+            aria-label="Back to forms"
+            className="flex size-11 items-center justify-center rounded-lg border border-cf-line transition-colors hover:bg-cf-raised"
+          >
+            <ArrowLeft aria-hidden="true" size={18} />
+          </Link>
 
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:60px_60px]" />
-      </div>
+          <h1 className="min-w-0 text-lg font-semibold tracking-tight break-words">{forms.title}</h1>
 
-      {/* TOPBAR */}
-      <div className="relative z-30 border-b border-white/10 bg-black/30 backdrop-blur-3xl">
-        <div className="flex flex-col gap-5 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6">
-          {/* LEFT */}
-          <div>
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+              isPublished ? "border-[#7FD6A8] text-[#7FD6A8]" : "border-[#E8B765] text-[#E8B765]"
+            }`}
+          >
+            {isPublished ? "Published" : "Draft"}
+          </span>
+
+          <span
+            role="status"
+            className={`text-[13px] ${hasUnsavedChanges ? "text-cf-accent-soft" : "text-cf-muted"}`}
+          >
+            {hasUnsavedChanges ? "Unsaved changes" : "All changes saved"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {isPublished ? (
             <Link
-              href="/dashboard/forms"
-              className="
-                inline-flex
-                items-center
-                gap-2
-                rounded-2xl
-                border
-                border-white/10
-                bg-white/[0.03]
-                px-4
-                py-2
-                text-sm
-                font-medium
-                text-white/70
-                transition-all
-                hover:bg-white/[0.06]
-                hover:text-white
-              "
-            >
-              <ArrowLeft size={16} />
-              Back to Forms
-            </Link>
-
-            <div className="mt-4 flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-white">{forms?.title}</h1>
-
-              <span
-                className={`
-                  rounded-full
-                  border
-                  px-3
-                  py-1
-                  text-xs
-                  uppercase
-                  tracking-[0.2em]
-                  ${
-                    isPublished
-                      ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-300"
-                      : "border-amber-500/20 bg-amber-500/10 text-amber-300"
-                  }
-                `}
-              >
-                {forms?.status}
-              </span>
-
-              {hasUnsavedChanges && (
-                <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs font-medium text-orange-300">
-                  Unsaved Changes
-                </span>
-              )}
-            </div>
-
-            <p className="mt-2 text-sm text-white/40">
-              {fields.length} field
-              {fields.length !== 1 ? "s" : ""} added
-            </p>
-          </div>
-
-          {/* RIGHT */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* SAVE */}
-            <button
-              onClick={handleSaveChanges}
-              disabled={!hasUnsavedChanges || isSavingChanges}
-              className={`
-                flex
-                items-center
-                gap-2
-                rounded-2xl
-                px-5
-                py-2.5
-                text-sm
-                font-medium
-                transition-all
-
-                ${
-                  hasUnsavedChanges
-                    ? `
-                      bg-white
-                      text-black
-                      hover:opacity-90
-                    `
-                    : `
-                      bg-white/5
-                      text-white/30
-                      cursor-not-allowed
-                    `
-                }
-              `}
-            >
-              {isSavingChanges ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check size={16} />}
-              Save Changes
-            </button>
-
-            {/* PREVIEW */}
-            <Link
-              href={publicUrl}
+              href={`/form/public/${forms.slug}`}
               target="_blank"
-              className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/[0.06]"
+              className={quietActionClass}
             >
-              <Eye size={16} />
-              Preview
+              <Eye aria-hidden="true" size={16} />
+              Open form
             </Link>
-
-            {/* SETTINGS */}
-            <Link
-              href={`/dashboard/forms/${id}/settings`}
-              className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-white/[0.06]"
-            >
-              <Settings size={16} />
-              Settings
-            </Link>
-
-            {/* PUBLISH */}
+          ) : (
             <button
-              onClick={handlePublishToggle}
-              disabled={isPublishing}
-              className="flex items-center gap-2 rounded-2xl bg-linear-to-r from-[#C9732B] to-[#B56A3C] px-5 py-2.5 text-sm font-medium text-white shadow-lg transition hover:scale-[1.01]"
+              type="button"
+              disabled
+              title="Publish this form to open its public page"
+              className={`${quietActionClass} cursor-not-allowed text-cf-muted hover:bg-transparent`}
             >
-              {isPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Globe size={16} />}
-
-              {isPublished ? "Unpublish" : "Publish"}
+              <Eye aria-hidden="true" size={16} />
+              Open form
             </button>
-          </div>
+          )}
+
+          <Link href={`/dashboard/forms/${id}/settings`} className={quietActionClass}>
+            <SlidersHorizontal aria-hidden="true" size={16} />
+            Settings
+          </Link>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!hasUnsavedChanges || isBusy}
+            className={`flex h-11 items-center gap-2 rounded-lg border px-4 text-sm font-medium transition-colors disabled:cursor-not-allowed ${
+              hasUnsavedChanges
+                ? "border-cf-line-strong text-cf-text hover:bg-cf-raised"
+                : "border-cf-line text-cf-muted"
+            }`}
+          >
+            {isSaving && <Loader2 aria-hidden="true" size={16} className="animate-spin" />}
+            Save
+          </button>
+
+          <button
+            type="button"
+            onClick={handlePublishToggle}
+            disabled={isBusy}
+            className="flex h-11 items-center gap-2 rounded-lg bg-cf-accent px-4.5 text-sm font-semibold text-cf-ground transition-colors hover:bg-cf-accent-soft disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isPublishing && <Loader2 aria-hidden="true" size={16} className="animate-spin" />}
+            {isPublished ? "Unpublish" : "Publish"}
+          </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main */}
-      <div className="relative z-10 flex flex-1 overflow-hidden">
-        {/* Builder Panel */}
-        <div
-          className={`
-            fixed inset-y-0 left-0 z-40 w-full overflow-y-auto border-r border-white/10 bg-white/[0.03] shadow-[0_0_80px_rgba(0,0,0,0.5)] backdrop-blur-3xl transition-transform duration-300 lg:static lg:w-[400px] lg:translate-x-0
-            ${showMobileBuilder ? "translate-x-0" : "-translate-x-full"}
-          `}
-        >
-          <div className="h-[80px] lg:hidden" />
+      <div className="grid xl:grid-cols-[248px_minmax(0,1fr)_288px]">
+        <BuilderSidebar theme={theme} onAddField={addField} onThemeChange={changeTheme} />
 
-          <div className="flex flex-col gap-5 p-6">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#C9732B]">
-                Field Builder
-              </p>
+        <FormPreview
+          title={forms.title}
+          description={forms.description}
+          fields={fields}
+          selectedId={selectedId}
+          theme={theme}
+          device={device}
+          onDeviceChange={setDevice}
+          onSelectField={selectField}
+        />
 
-              <h3 className="mt-3 text-2xl font-bold text-white">Add New Field</h3>
-            </div>
-
-            {/* Label */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-white/80">Label</label>
-
-              <input
-                type="text"
-                value={draft.label}
-                onChange={(e) =>
-                  setDraftField({
-                    label: e.target.value,
-
-                    labelKey: toLabelKey(e.target.value),
-                  })
-                }
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-              />
-
-              {draftError && <p className="text-xs text-red-400">{draftError}</p>}
-            </div>
-
-            {/* Type */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-white/80">Type</label>
-
-              <div className="relative">
-                <select
-                  value={draft.type}
-                  onChange={(e) =>
-                    setDraftField({
-                      type: e.target.value as FieldType,
-                    })
-                  }
-                  className="w-full appearance-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                >
-                  {FIELD_TYPES.map((t) => (
-                    <option key={t.value} value={t.value} className="bg-black">
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              </div>
-            </div>
-
-            {/* Placeholder */}
-            {draft.type !== "YES_NO" && (
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-white/80">Placeholder</label>
-
-                <input
-                  type="text"
-                  value={draft.placeholder}
-                  onChange={(e) =>
-                    setDraftField({
-                      placeholder: e.target.value,
-                    })
-                  }
-                  className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                />
-              </div>
-            )}
-
-            {/* Description */}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-white/80">Description</label>
-
-              <textarea
-                rows={4}
-                value={draft.description}
-                onChange={(e) =>
-                  setDraftField({
-                    description: e.target.value,
-                  })
-                }
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-              />
-            </div>
-
-            {/* Required */}
-            <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-              <input
-                type="checkbox"
-                checked={draft.isRequired}
-                onChange={(e) =>
-                  setDraftField({
-                    isRequired: e.target.checked,
-                  })
-                }
-                className="h-4 w-4 rounded accent-[#C9732B]"
-              />
-
-              <span className="text-sm text-white/80">Required field</span>
-            </label>
-
-            {/* Add Button */}
-            <button
-              onClick={handleAddField}
-              // disabled={isCreating}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-[#C9732B] to-[#B56A3C] px-5 py-3 text-sm font-medium text-white shadow-lg transition hover:scale-[1.01]"
-            >
-              <Plus size={16} />
-
-              {/* {isCreating ? "Adding..." : "Add Field"} */}
-              "Add Field"
-            </button>
-          </div>
-        </div>
-
-        {/* Preview */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto flex max-w-4xl flex-col gap-6 px-5 py-8">
-            <button
-              onClick={() => setShowMobileBuilder(true)}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-[#C9732B]/30 bg-[#C9732B]/10 px-5 py-4 text-sm font-medium text-[#F3EBDD] lg:hidden"
-            >
-              <Plus size={16} />
-              Add Field
-            </button>
-
-            <div className="rounded-[40px] border border-white/10 bg-white/[0.03] p-8 shadow-[0_0_100px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
-              {/* Form Header */}
-              <div className="mb-10">
-                <h1 className="text-4xl font-bold tracking-tight text-[#F3EBDD]">{forms?.title}</h1>
-
-                {forms?.description && (
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/60">
-                    {forms.description}
-                  </p>
-                )}
-              </div>
-
-              {fields.length === 0 ? (
-                <div className="flex min-h-[400px] flex-col items-center justify-center rounded-[40px] border border-dashed border-white/10 bg-white/[0.02] text-center">
-                  <div className="rounded-full bg-white/5 p-5">
-                    <Plus className="h-10 w-10 text-white/40" />
-                  </div>
-
-                  <h3 className="mt-6 text-2xl font-bold text-white">Start Building</h3>
-
-                  <p className="mt-3 max-w-md text-sm leading-relaxed text-white/50">
-                    Add fields from the builder panel to create your immersive form experience.
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-6">
-                  {fields.map((field) => (
-                    <div
-                      key={field.id}
-                      className="group relative rounded-3xl border border-white/5 bg-white/[0.02] p-5 transition-all hover:border-white/10 hover:bg-white/[0.04]"
-                    >
-                      {/* Actions */}
-                      <div className="absolute right-5 top-5 flex items-center gap-2 opacity-0 transition group-hover:opacity-100">
-                        {editingId === field.id ? (
-                          <>
-                            <button
-                              onClick={() => handleEditSave(field.id)}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-300"
-                            >
-                              <Check size={14} />
-                            </button>
-
-                            <button
-                              onClick={cancelEditing}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60"
-                            >
-                              <X size={14} />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => startEditing(field)}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/60"
-                            >
-                              <Pencil size={14} />
-                            </button>
-
-                            <button
-                              onClick={() => removeField(field.id)}
-                              className="flex h-9 w-9 items-center justify-center rounded-full bg-red-500/10 text-red-300"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-
-                      {/* Edit Mode */}
-                      {editingId === field.id ? (
-                        <div className="flex flex-col gap-5 pr-20">
-                          {/* Label */}
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-white/70">Label</label>
-
-                            <input
-                              type="text"
-                              value={editDraft.label}
-                              onChange={(e) =>
-                                setEditDraft((prev) => ({
-                                  ...prev,
-                                  label: e.target.value,
-                                }))
-                              }
-                              className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                            />
-                          </div>
-
-                          {/* Type */}
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-white/70">Field Type</label>
-
-                            <div className="relative">
-                              <select
-                                value={editDraft.type}
-                                onChange={(e) =>
-                                  setEditDraft((prev) => ({
-                                    ...prev,
-                                    type: e.target.value as FieldType,
-                                  }))
-                                }
-                                className="w-full appearance-none rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                              >
-                                {FIELD_TYPES.map((t) => (
-                                  <option key={t.value} value={t.value} className="bg-black">
-                                    {t.label}
-                                  </option>
-                                ))}
-                              </select>
-
-                              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-                            </div>
-                          </div>
-
-                          {/* Placeholder */}
-                          {editDraft.type !== "YES_NO" && (
-                            <div className="flex flex-col gap-2">
-                              <label className="text-sm font-medium text-white/70">
-                                Placeholder
-                              </label>
-
-                              <input
-                                type="text"
-                                value={editDraft.placeholder}
-                                onChange={(e) =>
-                                  setEditDraft((prev) => ({
-                                    ...prev,
-                                    placeholder: e.target.value,
-                                  }))
-                                }
-                                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                              />
-                            </div>
-                          )}
-
-                          {/* Description */}
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-white/70">Description</label>
-
-                            <textarea
-                              rows={4}
-                              value={editDraft.description}
-                              onChange={(e) =>
-                                setEditDraft((prev) => ({
-                                  ...prev,
-                                  description: e.target.value,
-                                }))
-                              }
-                              className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30 outline-none transition focus:border-[#C9732B]/40 focus:ring-4 focus:ring-[#C9732B]/10"
-                            />
-                          </div>
-
-                          {/* Required */}
-                          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                            <input
-                              type="checkbox"
-                              checked={editDraft.isRequired}
-                              onChange={(e) =>
-                                setEditDraft((prev) => ({
-                                  ...prev,
-                                  isRequired: e.target.checked,
-                                }))
-                              }
-                              className="h-4 w-4 rounded accent-[#C9732B]"
-                            />
-
-                            <span className="text-sm text-white/80">Required field</span>
-                          </label>
-                        </div>
-                      ) : (
-                        <div className="pr-20">
-                          <div className="mb-3 flex items-center gap-2">
-                            <label className="text-base font-semibold text-[#F3EBDD]">
-                              {field.label}
-                            </label>
-
-                            {field.isRequired && <span className="text-red-400">*</span>}
-                          </div>
-
-                          {field.description && (
-                            <p className="mb-5 text-sm leading-relaxed text-white/50">
-                              {field.description}
-                            </p>
-                          )}
-
-                          {field.type === "YES_NO" ? (
-                            <div className="flex gap-6">
-                              <label className="flex items-center gap-2 text-sm text-white/70">
-                                <input type="radio" disabled />
-                                Yes
-                              </label>
-
-                              <label className="flex items-center gap-2 text-sm text-white/70">
-                                <input type="radio" disabled />
-                                No
-                              </label>
-                            </div>
-                          ) : (
-                            <input
-                              disabled
-                              type="text"
-                              placeholder={field.placeholder}
-                              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/30"
-                            />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <FieldInspector
+          ref={inspectorRef}
+          field={selectedField}
+          canMoveUp={selectedIndex > 0}
+          canMoveDown={selectedIndex >= 0 && selectedIndex < fields.length - 1}
+          onChange={updateSelectedField}
+          onMove={moveSelectedField}
+          onDelete={deleteSelectedField}
+        />
       </div>
     </div>
   );

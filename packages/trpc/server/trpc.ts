@@ -21,8 +21,6 @@ export const authenticatedProcedure = tRPCContext.procedure.use(
     try {
       const userToken = getAuthenticationCookie(ctx);
 
-      console.log('COOKIE TOKEN:', userToken);
-
       if (!userToken) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
@@ -32,8 +30,6 @@ export const authenticatedProcedure = tRPCContext.procedure.use(
       }
 
       const { id } = await userService.verifyAndDecodeUserToken(userToken);
-
-      console.log('AUTH USER ID:', id);
 
       return options.next({
         ctx: {
