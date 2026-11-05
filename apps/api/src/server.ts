@@ -25,7 +25,7 @@ app.set("trust proxy", 1);
 // if (env.NODE_ENV !== "production") {
 app.use(
   cors({
-    origin: ["https://chaiforms-web.vercel.app", "http//:localhost:3000"],
+    origin: ["http://localhost:3000", "https://chaiforms-web.vercel.app"],
     credentials: true,
   }),
 );

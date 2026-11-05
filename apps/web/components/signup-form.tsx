@@ -27,6 +27,20 @@ type SignupFormValues = {
   password: string;
 };
 
+function getSignupErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "";
+
+  if (message.includes("already exists")) {
+    return "An account with this email already exists. Try logging in instead.";
+  }
+
+  if (message.includes("Invalid email address")) {
+    return "Please enter a valid email address, like you@example.com.";
+  }
+
+  return "We couldn't create your account. Please try again.";
+}
+
 export function SignupForm() {
 
   const router = useRouter();
@@ -38,7 +52,9 @@ export function SignupForm() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: {
+      errors,
       isSubmitting,
     },
   } = useForm<SignupFormValues>({
@@ -53,11 +69,21 @@ export function SignupForm() {
     SignupFormValues
   > = async (values) => {
 
-    await createUserWithEmailAndPasswordAsync({
-      fullName: values.fullName,
-      email: values.email,
-      password: values.password,
-    });
+    try {
+      await createUserWithEmailAndPasswordAsync({
+        fullName: values.fullName,
+        email: values.email,
+        password: values.password,
+      });
+    } catch (error) {
+      console.error(error);
+
+      setError("root", {
+        message: getSignupErrorMessage(error),
+      });
+
+      return;
+    }
 
     router.replace("/dashboard");
   };
@@ -190,6 +216,16 @@ export function SignupForm() {
               />
             </div>
           </div>
+
+          {/* Error */}
+          {errors.root?.message && (
+            <p
+              role="alert"
+              className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300"
+            >
+              {errors.root.message}
+            </p>
+          )}
 
           {/* Button */}
           <button
